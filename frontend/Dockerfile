@@ -13,7 +13,7 @@ COPY . .
 
 # Build de l'application en ignorant les erreurs de lint
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build || (echo "Build warnings were found but continuing..." && true)
+RUN npm run build
 
 # Exposition du port
 EXPOSE 3000

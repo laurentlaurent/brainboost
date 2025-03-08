@@ -174,7 +174,7 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Tabs value={quizMode} onValueChange={(value) => setQuizMode(value as any)}>
+        <Tabs value={quizMode} onValueChange={(value) => setQuizMode(value as 'multiple-choice' | 'fill-in')}>
           <TabsList>
             <TabsTrigger value="multiple-choice">Multiple Choice</TabsTrigger>
             <TabsTrigger value="fill-in">Fill in the Blank</TabsTrigger>

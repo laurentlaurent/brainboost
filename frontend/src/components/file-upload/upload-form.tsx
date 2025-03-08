@@ -21,6 +21,15 @@ type Flashcard = {
   nextReview: string | null;
 };
 
+type UploadError = {
+  response?: {
+    data?: {
+      error?: string;
+    };
+  };
+  message: string;
+};
+
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -36,6 +45,10 @@ export function FileUploadForm() {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   const onSubmit = async (_data: Record<string, unknown>) => {
+    if (_data) {
+      console.log("_data: ", _data);
+    }
+
     if (!file) return;
 
     setIsUploading(true);
@@ -51,12 +64,16 @@ export function FileUploadForm() {
         },
       });
 
-      setFlashcards(response.data.flashcards);
+      setFlashcards(response.data.flashcards.map((fc: Flashcard) => ({
+        ...fc,
+        tags: fc.tags ?? [],
+      })));
       setUploadStatus({
         type: 'success',
         message: 'File uploaded and processed successfully!',
       });
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as UploadError;
       console.error('Upload error:', error);
       setUploadStatus({
         type: 'error',

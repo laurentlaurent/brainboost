@@ -11,6 +11,7 @@ NC=\033[0m # No Color
 BACKEND_DIR=backend
 FRONTEND_DIR=frontend
 VENV_DIR=$(BACKEND_DIR)/venv
+DEV ?= 1
 
 help:
 	@echo "${BLUE}BrainBoost - Assistant d'apprentissage par flashcards${NC}"
@@ -52,8 +53,12 @@ run-backend:
 	@. $(VENV_DIR)/bin/activate && cd $(BACKEND_DIR) && python app.py
 
 run-frontend:
-	@echo "${BLUE}Démarrage du serveur frontend...${NC}"
-	@cd $(FRONTEND_DIR) && npm run dev
+    @echo "${BLUE}Démarrage du serveur frontend...${NC}"
+ifeq ($(DEV),1)
+    @cd $(FRONTEND_DIR) && npm run dev
+else
+    @cd $(FRONTEND_DIR) && npm run build && npm start
+endif
 
 run:
 	@echo "${RED}Pour exécuter les deux serveurs simultanément, veuillez utiliser deux terminaux séparés:${NC}"
