@@ -66,14 +66,22 @@ def generate_flashcards_from_text(text, num_cards=5):
     """Génère des flashcards à partir du texte en utilisant Gemini"""
     try:
         if not GEMINI_API_KEY:
-            # Retourner des cartes par défaut si la clé API n'est pas configurée
+            print("Pas de clé API Gemini configurée")
             return generate_default_flashcards(text, num_cards)
         
         # Limitation à 4000 caractères pour éviter des demandes trop grandes
         text_to_process = text[:4000] if len(text) > 4000 else text
         
         # Créer le modèle Gemini
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel(model_name='gemini-1.5-flash')
+        
+        # Tester la connexion API avant de continuer
+        try:
+            test_response = model.generate_content("Test API")
+            print("Connexion à l'API Gemini établie")
+        except Exception as e:
+            print(f"Erreur de connexion à l'API Gemini: {e}")
+            return generate_default_flashcards(text, num_cards)
         
         # Construire le prompt pour Gemini
         prompt = f"""À partir du texte suivant, crée {num_cards} cartes d'apprentissage (flashcards) au format question-réponse.
@@ -106,22 +114,39 @@ Réponds UNIQUEMENT avec le JSON, sans texte explicatif avant ou après."""
         
         # Extraire la réponse
         ai_response = response.text
-
+        
+        # Debug: imprimer la réponse brute pour voir son format réel
+        print(f"Réponse brute de Gemini (premiers 200 caractères): {ai_response[:200]}")
+        
         # Traiter la réponse pour extraire le JSON
         try:
-            # Nettoyer la réponse (supprimer les blocs de code markdown s'ils existent)
-            clean_response = ai_response
-            if "```json" in ai_response:
-                clean_response = re.search(r'```json\s*(.*?)\s*```', ai_response, re.DOTALL)
-                if clean_response:
-                    clean_response = clean_response.group(1)
-            elif "```" in ai_response:
-                clean_response = re.search(r'```\s*(.*?)\s*```', ai_response, re.DOTALL)
-                if clean_response:
-                    clean_response = clean_response.group(1)
-            
-            # Tenter de parser comme JSON
-            flashcards = json.loads(clean_response)
+            # Essayer d'abord le parsing direct (si Gemini a bien retourné juste du JSON)
+            try:
+                flashcards = json.loads(ai_response)
+                print("Parsing direct JSON réussi")
+            except json.JSONDecodeError:
+                # Nettoyer la réponse avec différents patterns
+                clean_response = None
+                patterns = [
+                    r'```json\s*(\[.*?\])\s*```',  # Format code JSON
+                    r'```\s*(\[.*?\])\s*```',       # Format code générique
+                    r'(\[\s*\{.*?\}\s*\])'          # Format tableau JSON brut
+                ]
+                
+                for pattern in patterns:
+                    match = re.search(pattern, ai_response, re.DOTALL)
+                    if match:
+                        try:
+                            clean_response = match.group(1)
+                            flashcards = json.loads(clean_response)
+                            print(f"Parsing JSON réussi avec le pattern: {pattern}")
+                            break
+                        except json.JSONDecodeError:
+                            continue
+                
+                if clean_response is None:
+                    print(f"Aucun pattern JSON n'a fonctionné. Réponse brute: {ai_response[:200]}")
+                    return generate_default_flashcards(text, num_cards)
             
             # Ajouter des IDs uniques à chaque flashcard
             for card in flashcards:
@@ -133,32 +158,13 @@ Réponds UNIQUEMENT avec le JSON, sans texte explicatif avant ou après."""
             
             return flashcards
         
-        except (json.JSONDecodeError, ValueError) as e:
-            # Essayer d'extraire un JSON valide de la réponse avec regex
-            print(f"Erreur de parsing JSON: {e}")
-            print(f"Réponse brute: {ai_response[:200]}...")
-            
-            # Chercher un pattern JSON dans la réponse
-            json_match = re.search(r'\[\s*{\s*"question".*}\s*\]', ai_response, re.DOTALL)
-            if json_match:
-                try:
-                    flashcards = json.loads(json_match.group(0))
-                    # Ajouter des IDs uniques à chaque flashcard
-                    for card in flashcards:
-                        card["id"] = str(uuid.uuid4())
-                        # Ajouter des champs supplémentaires pour l'interface utilisateur
-                        card["difficulty"] = 0
-                        card["lastReviewed"] = None
-                        card["nextReview"] = None
-                    return flashcards
-                except:
-                    pass
-            
-            # En cas d'échec, générer des cartes par défaut
+        except Exception as e:
+            print(f"Erreur lors du traitement de la réponse JSON: {e}")
+            print(f"Réponse brute complète de Gemini: {ai_response}")
             return generate_default_flashcards(text, num_cards)
         
     except Exception as e:
-        print(f"Erreur lors de la génération des cartes avec Gemini: {e}")
+        print(f"Erreur générale lors de la génération des cartes avec Gemini: {e}")
         return generate_default_flashcards(text, num_cards)
 
 def generate_default_flashcards(text, num_cards=5):
@@ -201,18 +207,24 @@ def generate_default_flashcards(text, num_cards=5):
     return flashcards
 
 def test_gemini_api():
-    """Teste la connexion à l'API Gemini"""
+    """Teste la connexion à l'API Gemini et retourne des informations détaillées"""
     if not GEMINI_API_KEY:
-        return False
+        return {"success": False, "message": "Pas de clé API configurée"}
 
     try:
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content("Dis bonjour en français")
-        print("Test API Gemini réussi:", response.text)
-        return True
+        return {
+            "success": True,
+            "message": f"Test API Gemini réussi: {response.text}",
+            "raw_response": response.text
+        }
     except Exception as e:
-        print("Erreur lors du test de l'API Gemini:", e)
-        return False
+        return {
+            "success": False,
+            "message": f"Erreur lors du test de l'API Gemini: {str(e)}",
+            "error": str(e)
+        }
 
 @app.route('/')
 def index():
@@ -225,12 +237,9 @@ def index():
 
 @app.route('/api/test-gemini')
 def test_gemini():
-    """Route pour tester la connexion à l'API Gemini"""
+    """Route pour tester la connexion à l'API Gemini avec des détails d'erreur"""
     result = test_gemini_api()
-    return jsonify({
-        "success": result,
-        "message": "Connexion à l'API Gemini réussie" if result else "Échec de connexion à l'API Gemini ou clé API non configurée"
-    })
+    return jsonify(result), 200 if result.get("success", False) else 500
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -265,8 +274,17 @@ def upload_file():
         # Obtenir le nombre de cartes demandé (paramètre optionnel)
         num_cards = request.args.get('num_cards', default=5, type=int)
         
+        # Test de l'API Gemini avant génération
+        gemini_status = test_gemini_api()
+        if not gemini_status.get("success", False):
+            # Si le test échoue, on continue quand même mais on informe l'utilisateur
+            print("Test API Gemini échoué, utilisation du générateur par défaut")
+        
         # Génération des flashcards à partir du texte extrait
         flashcards = generate_flashcards_from_text(text, num_cards)
+        
+        # Vérifier si nous avons des flashcards générées par Gemini ou par défaut
+        is_default = any("générée automatiquement" in card.get("question", "") for card in flashcards)
         
         # Stockage des flashcards dans notre "base de données"
         set_id = str(uuid.uuid4())
@@ -280,6 +298,8 @@ def upload_file():
         return jsonify({
             "success": True,
             "message": "Fichier traité avec succès",
+            "gemini_used": not is_default,
+            "gemini_status": gemini_status if not is_default else "Fallback utilisé",
             "set_id": set_id,
             "title": FLASHCARDS_DB[set_id]["title"],
             "flashcards": flashcards,
@@ -386,8 +406,21 @@ def generate_from_text():
     num_cards = data.get("num_cards", 5)
     title = data.get("title", "Flashcards générées")
     
+    # Test de l'API Gemini avant génération
+    gemini_status = test_gemini_api()
+    if not gemini_status.get("success", False):
+        return jsonify({
+            "success": False,
+            "message": "Échec de connexion à l'API Gemini",
+            "api_error": gemini_status,
+            "fallback": "Utilisation du générateur par défaut"
+        }), 200  # Return 200 to show it worked, but with error info
+    
     # Génération des flashcards
     flashcards = generate_flashcards_from_text(text, num_cards)
+    
+    # Vérifier si nous avons des flashcards générées par Gemini ou par défaut
+    is_default = any("générée automatiquement" in card.get("question", "") for card in flashcards)
     
     # Stockage des flashcards dans notre "base de données"
     set_id = str(uuid.uuid4())
@@ -401,6 +434,8 @@ def generate_from_text():
     return jsonify({
         "success": True,
         "message": "Flashcards générées avec succès",
+        "gemini_used": not is_default,
+        "gemini_status": gemini_status if not is_default else "Fallback utilisé",
         "set_id": set_id,
         "title": title,
         "flashcards": flashcards
