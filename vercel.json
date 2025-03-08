@@ -9,7 +9,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://brainboost-j532.onrender.com.com/api/$1"
+      "dest": "https://brainboost-j532.onrender.com/api/$1"
     },
     {
       "src": "/(.*)",
@@ -17,6 +17,6 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://brainboost-j532.onrender.com.com/api/"
+    "NEXT_PUBLIC_API_URL": "https://brainboost-j532.onrender.com/api/"
   }
 }
