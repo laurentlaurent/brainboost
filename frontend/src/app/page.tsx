@@ -11,7 +11,7 @@ import { QuizMode } from '@/components/flashcards/quiz-mode';
 import axios from 'axios';
 
 // Define API backend URL
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Flashcard and Flashcard Set types
 type Flashcard = {
@@ -35,6 +35,12 @@ type FlashcardSetSummary = {
   id: string;
   title: string;
   count: number;
+};
+
+type QuizResult = {
+  cardId: string;
+  correct: boolean;
+  timeSpent: number;
 };
 
 export default function Home() {
@@ -84,30 +90,31 @@ export default function Home() {
   const handleSaveCard = async (updatedCard: Flashcard) => {
     if (!selectedSet) return;
 
-    // Update the card locally
-    const updatedFlashcards = selectedSet.flashcards.map(card => 
-      card.id === updatedCard.id ? updatedCard : card
-    );
-
-    const updatedSet = {
-      ...selectedSet,
-      flashcards: updatedFlashcards
-    };
-
     try {
-      // Save to the backend
-      await axios.put(`${API_URL}/flashcards/${selectedSet.id}`, {
-        flashcards: updatedFlashcards
-      });
-      
-      // Update local state
-      setSelectedSet(updatedSet);
+      // Save to the backend using the correct endpoint
+      const response = await axios.put(
+        `${API_URL}/flashcards/${selectedSet.id}/cards/${updatedCard.id}`,
+        updatedCard
+      );
+
+      if (response.data.success) {
+        // Update the card locally
+        const updatedFlashcards = selectedSet.flashcards.map(card => 
+          card.id === updatedCard.id ? updatedCard : card
+        );
+
+        // Update the local state
+        setSelectedSet({
+          ...selectedSet,
+          flashcards: updatedFlashcards
+        });
+      }
     } catch (error) {
       console.error('Error saving flashcard:', error);
     }
   };
 
-  const handleQuizComplete = (results: any[]) => {
+  const handleQuizComplete = (results: QuizResult[]) => {
     // Here you could implement functionality to update the spaced repetition
     // schedule based on quiz results, or store study statistics
     console.log('Quiz completed with results:', results);
@@ -220,7 +227,8 @@ export default function Home() {
 
                 {currentView === 'view' ? (
                   <FlashcardViewer 
-                    flashcards={selectedSet.flashcards} 
+                    flashcards={selectedSet.flashcards}
+                    setId={selectedSet.id}
                     onEditCard={handleEditCard}
                   />
                 ) : (

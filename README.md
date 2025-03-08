@@ -1,81 +1,103 @@
-# brainboost
-BrainBoost is an innovative learning platform that uses AI and gamification to make studying fun and effective. With personalized flashcards, users progress at their own pace, combining spaced repetition with challenges and rewards to enhance memory and skills in an interactive way. a fun and interactive way.
+# BrainBoost
 
-This project combines a [Next.js](https://nextjs.org) frontend with a Flask backend to create a flashcard system that aims to extract content from PDFs and manage flashcards for effective studying.
+BrainBoost est une application web interactive qui utilise l'IA pour générer des cartes d'apprentissage (flashcards) à partir de divers types de contenus. L'application facilite l'apprentissage en transformant automatiquement des documents PDF, des images ou du texte en cartes questions-réponses.
 
-## Features To Do
+## Fonctionnalités
 
-- PDF file upload and text extraction (to do)
-- Flashcard creation from uploaded documents (to do)
-- Flashcard management (create, edit, delete) (to do)
-- Flashcard review system (to do)
-- Quiz mode for testing knowledge (to do)
+- **Import multi-format**: téléchargez des PDF, images (PNG, JPG) ou fichiers texte
+- **Génération automatique par IA**: création de cartes questions-réponses pertinentes grâce à Google Gemini AI
+- **Mode d'étude interactif**: révisez vos cartes avec différents modes d'apprentissage
+- **Suivi de progression**: évaluez votre maîtrise des concepts
+- **Interface responsive**: utilisable sur ordinateur, tablette ou mobile
 
-## Getting Started
+## Architecture du projet
 
-### Backend Setup
+Le projet est divisé en deux parties principales:
 
-First, set up and run the Flask backend:
+- **Backend** (Flask): API pour le traitement des fichiers et l'intégration avec Gemini AI
+- **Frontend** (Next.js): Interface utilisateur interactive et responsive
+
+## Prérequis
+
+- Python 3.8 ou supérieur
+- Node.js 18.x ou supérieur
+- Une clé API Google Gemini (gratuite)
+
+## Installation
+
+### Avec Make (recommandé)
+
+```bash
+# Installer toutes les dépendances
+make setup
+
+# Configurer la clé API Gemini dans backend/.env
+```
+
+### Installation manuelle
+
+#### Backend
 
 ```bash
 cd backend
-
-# Optional: Create a virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows, use: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate  # Sur Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-# Run the backend server
-python app.py
+cp .env.example .env  # Configurer la clé API Gemini
 ```
 
-The backend will run on http://localhost:5000.
-
-### Frontend Setup
-
-In a separate terminal, set up and run the Next.js frontend:
+#### Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Run the development server
-npm run dev
-
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+## Démarrage
 
-## Project Structure
+### Avec Make
 
-- `/backend`: Flask API server
-  - `/uploads`: Storage for uploaded files
-  - `app.py`: Main backend application
-  
-- `/frontend`: Next.js frontend application
-  - `/src/components`: React components
-    - `/file-upload`: Components for file uploading
-    - `/flashcards`: Components for flashcard editing and viewing
-    - `/ui`: Reusable UI components
-  - `/src/app`: Next.js application pages
+```bash
+# Terminal 1: Démarrer le backend
+make run-backend
 
-## Using the Application
+# Terminal 2: Démarrer le frontend
+make run-frontend
+```
 
-1. Launch both the backend and frontend servers as described above
-2. Navigate to http://localhost:3000 in your browser
-3. Upload a PDF document using the file upload interface
-4. Edit and manage your flashcards through the intuitive UI (to-do)
-5. Use the quiz mode to test your knowledge (to do)
+### Démarrage manuel
 
-## Learn More
+#### Backend
 
-To learn more about the technologies used in this project:
+```bash
+cd backend
+source venv/bin/activate  # Sur Windows: venv\Scripts\activate
+python app.py
+```
 
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Flask Documentation](https://flask.palletsprojects.com/)
-- [Python-Flask CORS](https://flask-cors.readthedocs.io/en/latest/)
-- [PyPDF Documentation](https://pypdf.readthedocs.io/en/stable/)
+#### Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+## Obtenir une clé API Gemini
+
+1. Visitez [Google AI Studio](https://ai.google.dev/)
+2. Créez un compte si nécessaire
+3. Accédez à la section API et créez une clé API
+4. Copiez cette clé dans le fichier `backend/.env`
+
+## Tests
+
+Pour vérifier que l'API Gemini fonctionne correctement:
+
+```bash
+make test-backend
+```
+
+
+## Licence
+
+Ce projet est sous licence MIT - voir le fichier LICENSE pour plus de détails.

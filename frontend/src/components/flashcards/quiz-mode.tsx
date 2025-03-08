@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 type Flashcard = {
@@ -56,7 +56,7 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
   const [timerActive, setTimerActive] = useState(true);
   const [completed, setCompleted] = useState(false);
 
-  const currentCard = flashcards[currentCardIndex];
+  const currentCard = flashcards[currentCardIndex] || { tags: [] };
 
   // Initialize options for multiple choice
   useEffect(() => {
@@ -102,6 +102,13 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
     setShowResult(true);
   };
 
+  const handleQuizComplete = () => {
+    // Quiz completed
+    setCompleted(true);
+    setTimerActive(false);
+    onComplete(results);
+  };
+
   const handleNext = () => {
     if (currentCardIndex < flashcards.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
@@ -109,10 +116,7 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
       setUserAnswer('');
       setShowResult(false);
     } else {
-      // Quiz completed
-      setCompleted(true);
-      setTimerActive(false);
-      onComplete(results);
+      handleQuizComplete();
     }
   };
 
@@ -167,10 +171,18 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
     );
   }
 
+  if (!flashcards.length) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <p className="text-muted-foreground">No flashcards available</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Tabs value={quizMode} onValueChange={(value) => setQuizMode(value as any)}>
+        <Tabs value={quizMode} onValueChange={(value) => setQuizMode(value as 'multiple-choice' | 'fill-in')}>
           <TabsList>
             <TabsTrigger value="multiple-choice">Multiple Choice</TabsTrigger>
             <TabsTrigger value="fill-in">Fill in the Blank</TabsTrigger>
@@ -186,7 +198,7 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
         <CardHeader>
           <CardTitle className="text-lg">Question {currentCardIndex + 1} of {flashcards.length}</CardTitle>
           <div className="flex gap-1">
-            {currentCard.tags.map((tag) => (
+            {(currentCard.tags || []).map((tag) => (
               <span
                 key={tag}
                 className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-1 text-xs"

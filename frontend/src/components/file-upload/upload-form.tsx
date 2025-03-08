@@ -9,7 +9,26 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Define API backend URL
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+type Flashcard = {
+  id: string;
+  question: string;
+  answer: string;
+  tags: string[];
+  difficulty: number;
+  lastReviewed: string | null;
+  nextReview: string | null;
+};
+
+type UploadError = {
+  response?: {
+    data?: {
+      error?: string;
+    };
+  };
+  message: string;
+};
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -21,11 +40,15 @@ export function FileUploadForm() {
     type: null,
     message: '',
   });
-  const [flashcards, setFlashcards] = useState<any[]>([]);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (_data: Record<string, unknown>) => {
+    if (_data) {
+      console.log("_data: ", _data);
+    }
+
     if (!file) return;
 
     setIsUploading(true);
@@ -41,12 +64,16 @@ export function FileUploadForm() {
         },
       });
 
-      setFlashcards(response.data.flashcards);
+      setFlashcards(response.data.flashcards.map((fc: Flashcard) => ({
+        ...fc,
+        tags: fc.tags ?? [],
+      })));
       setUploadStatus({
         type: 'success',
         message: 'File uploaded and processed successfully!',
       });
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as UploadError;
       console.error('Upload error:', error);
       setUploadStatus({
         type: 'error',
