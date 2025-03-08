@@ -4,7 +4,7 @@ BrainBoost est une application web interactive qui utilise l'IA pour générer d
 
 ## Fonctionnalités
 
-- **Import multi-format**: téléchargez des PDF, images (PNG, JPG) ou fichiers texte
+- **Import pdf**: Importez des PDF
 - **Génération automatique par IA**: création de cartes questions-réponses pertinentes grâce à Google Gemini AI
 - **Mode d'étude interactif**: révisez vos cartes avec différents modes d'apprentissage
 - **Suivi de progression**: évaluez votre maîtrise des concepts

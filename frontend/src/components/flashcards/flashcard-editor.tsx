@@ -111,7 +111,7 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
                 <SelectTrigger>
                   <SelectValue placeholder="Select difficulty" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white z-[60]">
                   <SelectItem value="1">Easy</SelectItem>
                   <SelectItem value="2">Medium</SelectItem>
                   <SelectItem value="3">Hard</SelectItem>

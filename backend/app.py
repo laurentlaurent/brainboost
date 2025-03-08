@@ -445,13 +445,13 @@ def update_flashcard_set(set_id):
 
 @app.route('/api/flashcards/<set_id>/cards/<card_id>', methods=['PUT'])
 def update_flashcard(set_id, card_id):
-    """Mettre à jour une carte spécifique"""
+    """Update a specific flashcard in a set"""
     if set_id not in FLASHCARDS_DB:
-        return jsonify({"error": "Jeu de flashcards non trouvé"}), 404
+        return jsonify({"error": "Flashcard set not found"}), 404
     
     data = request.json
     
-    # Recherche de la carte
+    # Find the card to update
     card_index = None
     for i, card in enumerate(FLASHCARDS_DB[set_id]["flashcards"]):
         if card["id"] == card_id:
@@ -459,19 +459,24 @@ def update_flashcard(set_id, card_id):
             break
     
     if card_index is None:
-        return jsonify({"error": "Carte non trouvée"}), 404
+        return jsonify({"error": "Card not found"}), 404
     
-    # Mise à jour des champs de la carte
-    for key, value in data.items():
-        FLASHCARDS_DB[set_id]["flashcards"][card_index][key] = value
+    # Update the card fields while preserving the card ID
+    updated_card = {
+        **FLASHCARDS_DB[set_id]["flashcards"][card_index],  # Preserve existing fields
+        **data,  # Update with new data
+        "id": card_id  # Ensure ID remains unchanged
+    }
+    
+    FLASHCARDS_DB[set_id]["flashcards"][card_index] = updated_card
     
     # Save changes to file
     save_flashcards_db(FLASHCARDS_DB)
     
     return jsonify({
         "success": True,
-        "message": "Carte mise à jour avec succès",
-        "card": FLASHCARDS_DB[set_id]["flashcards"][card_index]
+        "message": "Flashcard updated successfully",
+        "card": updated_card
     }), 200
 
 @app.route('/api/flashcards/<set_id>', methods=['DELETE'])
