@@ -28,6 +28,10 @@ export function FlashcardViewer({ flashcards, setId, onEditCard }: FlashcardView
 
   const currentCard = flashcards[currentCardIndex] || { tags: [] };
 
+  if (!setId) {
+    console.log('No setId prop provided');
+  }
+
   const handleNext = () => {
     if (currentCardIndex < flashcards.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
