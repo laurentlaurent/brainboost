@@ -15,6 +15,10 @@ type FlashcardSetSummary = {
   count: number;
 };
 
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.headers.common['Accept'] = 'application/json';
+axios.defaults.withCredentials = false;
+
 export default function LibraryPage() {
   const router = useRouter();
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSetSummary[]>([]);
