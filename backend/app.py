@@ -27,15 +27,29 @@ CORS(app)  # Permet les requêtes cross-origin pour le développement
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
+DATA_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+FLASHCARDS_FILE = os.path.join(DATA_FOLDER, 'flashcards.json')
 ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'txt'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 
-# Création du dossier uploads s'il n'existe pas
+# Création des dossiers nécessaires
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(DATA_FOLDER, exist_ok=True)
 
 # Simulation de base de données (à remplacer par une vraie BDD en production)
-FLASHCARDS_DB = {}
+def load_flashcards_db():
+    if os.path.exists(FLASHCARDS_FILE):
+        with open(FLASHCARDS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
+
+def save_flashcards_db(db):
+    with open(FLASHCARDS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(db, f, ensure_ascii=False, indent=2)
+
+# Initialiser la base de données
+FLASHCARDS_DB = load_flashcards_db()
 
 def allowed_file(filename):
     """Vérifie si le fichier a une extension autorisée"""
@@ -295,6 +309,9 @@ def upload_file():
             "flashcards": flashcards
         }
         
+        # Sauvegarder les changements dans le fichier
+        save_flashcards_db(FLASHCARDS_DB)
+        
         return jsonify({
             "success": True,
             "message": "Fichier traité avec succès",
@@ -347,6 +364,9 @@ def update_flashcard_set(set_id):
     if "flashcards" in data:
         FLASHCARDS_DB[set_id]["flashcards"] = data["flashcards"]
     
+    # Save changes to file
+    save_flashcards_db(FLASHCARDS_DB)
+    
     return jsonify({
         "success": True,
         "message": "Jeu de flashcards mis à jour avec succès",
@@ -375,6 +395,9 @@ def update_flashcard(set_id, card_id):
     for key, value in data.items():
         FLASHCARDS_DB[set_id]["flashcards"][card_index][key] = value
     
+    # Save changes to file
+    save_flashcards_db(FLASHCARDS_DB)
+    
     return jsonify({
         "success": True,
         "message": "Carte mise à jour avec succès",
@@ -388,6 +411,9 @@ def delete_flashcard_set(set_id):
         return jsonify({"error": "Jeu de flashcards non trouvé"}), 404
     
     del FLASHCARDS_DB[set_id]
+    
+    # Save changes to file
+    save_flashcards_db(FLASHCARDS_DB)
     
     return jsonify({
         "success": True,
@@ -430,6 +456,9 @@ def generate_from_text():
         "creation_date": datetime.datetime.now().isoformat(),
         "flashcards": flashcards
     }
+    
+    # Save changes to file
+    save_flashcards_db(FLASHCARDS_DB)
     
     return jsonify({
         "success": True,

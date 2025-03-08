@@ -90,24 +90,25 @@ export default function Home() {
   const handleSaveCard = async (updatedCard: Flashcard) => {
     if (!selectedSet) return;
 
-    // Update the card locally
-    const updatedFlashcards = selectedSet.flashcards.map(card => 
-      card.id === updatedCard.id ? updatedCard : card
-    );
-
-    const updatedSet = {
-      ...selectedSet,
-      flashcards: updatedFlashcards
-    };
-
     try {
-      // Save to the backend
-      await axios.put(`${API_URL}/flashcards/${selectedSet.id}`, {
-        flashcards: updatedFlashcards
-      });
-      
-      // Update local state
-      setSelectedSet(updatedSet);
+      // Save to the backend using the correct endpoint
+      const response = await axios.put(
+        `${API_URL}/flashcards/${selectedSet.id}/cards/${updatedCard.id}`,
+        updatedCard
+      );
+
+      if (response.data.success) {
+        // Update the card locally
+        const updatedFlashcards = selectedSet.flashcards.map(card => 
+          card.id === updatedCard.id ? updatedCard : card
+        );
+
+        // Update the local state
+        setSelectedSet({
+          ...selectedSet,
+          flashcards: updatedFlashcards
+        });
+      }
     } catch (error) {
       console.error('Error saving flashcard:', error);
     }
@@ -226,7 +227,8 @@ export default function Home() {
 
                 {currentView === 'view' ? (
                   <FlashcardViewer 
-                    flashcards={selectedSet.flashcards} 
+                    flashcards={selectedSet.flashcards}
+                    setId={selectedSet.id}
                     onEditCard={handleEditCard}
                   />
                 ) : (

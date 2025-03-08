@@ -17,15 +17,16 @@ type Flashcard = {
 
 type FlashcardViewerProps = {
   flashcards: Flashcard[];
+  setId: string;  // Add setId prop
   onEditCard?: (card: Flashcard) => void;
 };
 
-export function FlashcardViewer({ flashcards, onEditCard }: FlashcardViewerProps) {
+export function FlashcardViewer({ flashcards, setId, onEditCard }: FlashcardViewerProps) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [completed, setCompleted] = useState(false);
 
-  const currentCard = flashcards[currentCardIndex];
+  const currentCard = flashcards[currentCardIndex] || { tags: [] };
 
   const handleNext = () => {
     if (currentCardIndex < flashcards.length - 1) {
@@ -102,7 +103,7 @@ export function FlashcardViewer({ flashcards, onEditCard }: FlashcardViewerProps
         <CardHeader className="pb-2">
           <div className="flex justify-between">
             <div className="flex gap-2">
-              {currentCard.tags.map((tag) => (
+              {(currentCard.tags || []).map((tag) => (
                 <span
                   key={tag}
                   className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-1 text-xs"

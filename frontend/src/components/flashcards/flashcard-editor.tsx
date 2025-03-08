@@ -69,8 +69,8 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={onClose} defaultOpen={false}>
+      <DialogContent className="z-50 sm:max-w-md data-[state=open]:bg-white">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Edit Flashcard</DialogTitle>

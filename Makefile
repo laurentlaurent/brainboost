@@ -53,11 +53,11 @@ run-backend:
 	@. $(VENV_DIR)/bin/activate && cd $(BACKEND_DIR) && python app.py
 
 run-frontend:
-    @echo "${BLUE}Démarrage du serveur frontend...${NC}"
+	@echo "${BLUE}Démarrage du serveur frontend...${NC}"
 ifeq ($(DEV),1)
-    @cd $(FRONTEND_DIR) && npm run dev
+	@cd $(FRONTEND_DIR) && npm run dev
 else
-    @cd $(FRONTEND_DIR) && npm run build && npm start
+	@cd $(FRONTEND_DIR) && npm run build && npm start
 endif
 
 run:
