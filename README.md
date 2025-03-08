@@ -1,49 +1,49 @@
 # BrainBoost
 
-BrainBoost est une application web interactive qui utilise l'IA pour générer des cartes d'apprentissage (flashcards) à partir de divers types de contenus. L'application facilite l'apprentissage en transformant automatiquement des documents PDF, des images ou du texte en cartes questions-réponses.
+BrainBoost is an interactive web application that uses AI to generate flashcards from various types of content. The application facilitates learning by automatically transforming PDF documents, images, or text into question-answer cards.
 
-## Fonctionnalités
+## Features
 
-- **Import pdf**: Importez des PDF
-- **Génération automatique par IA**: création de cartes questions-réponses pertinentes grâce à Google Gemini AI
-- **Mode d'étude interactif**: révisez vos cartes avec différents modes d'apprentissage
-- **Suivi de progression**: évaluez votre maîtrise des concepts
-- **Interface responsive**: utilisable sur ordinateur, tablette ou mobile
+- **PDF Import**: Import PDFs
+- **Automatic AI Generation**: creation of relevant question-answer cards using Google Gemini AI
+- **Interactive Study Mode**: review your cards with different learning modes
+- **Progress Tracking**: evaluate your mastery of concepts
+- **Responsive Interface**: usable on computer, tablet, or mobile
 
-## Architecture du projet
+## Project Architecture
 
-Le projet est divisé en deux parties principales:
+The project is divided into two main parts:
 
-- **Backend** (Flask): API pour le traitement des fichiers et l'intégration avec Gemini AI
-- **Frontend** (Next.js): Interface utilisateur interactive et responsive
+- **Backend** (Flask): API for file processing and integration with Gemini AI
+- **Frontend** (Next.js): Interactive and responsive user interface
 
-## Prérequis
+## Prerequisites
 
-- Python 3.8 ou supérieur
-- Node.js 18.x ou supérieur
-- Une clé API Google Gemini (gratuite)
+- Python 3.8 or higher
+- Node.js 18.x or higher
+- A Google Gemini API key (free)
 
 ## Installation
 
-### Avec Make (recommandé)
+### With Make (recommended)
 
 ```bash
-# Installer toutes les dépendances
+# Install all dependencies
 make setup
 
-# Configurer la clé API Gemini dans backend/.env
+# Configure Gemini API key in backend/.env
 ```
 
-### Installation manuelle
+### Manual Installation
 
 #### Backend
 
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # Sur Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env  # Configurer la clé API Gemini
+cp .env.example .env  # Configure Gemini API key
 ```
 
 #### Frontend
@@ -53,25 +53,25 @@ cd frontend
 npm install
 ```
 
-## Démarrage
+## Starting the Application
 
-### Avec Make
+### With Make
 
 ```bash
-# Terminal 1: Démarrer le backend
+# Terminal 1: Start the backend
 make run-backend
 
-# Terminal 2: Démarrer le frontend
+# Terminal 2: Start the frontend
 make run-frontend
 ```
 
-### Démarrage manuel
+### Manual Start
 
 #### Backend
 
 ```bash
 cd backend
-source venv/bin/activate  # Sur Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 python app.py
 ```
 
@@ -82,22 +82,21 @@ cd frontend
 npm run dev
 ```
 
-## Obtenir une clé API Gemini
+## Getting a Gemini API Key
 
-1. Visitez [Google AI Studio](https://ai.google.dev/)
-2. Créez un compte si nécessaire
-3. Accédez à la section API et créez une clé API
-4. Copiez cette clé dans le fichier `backend/.env`
+1. Visit [Google AI Studio](https://ai.google.dev/)
+2. Create an account if needed
+3. Access the API section and create an API key
+4. Copy this key into the `backend/.env` file
 
 ## Tests
 
-Pour vérifier que l'API Gemini fonctionne correctement:
+To verify that the Gemini API is working correctly:
 
 ```bash
 make test-backend
 ```
 
+## License
 
-## Licence
-
-Ce projet est sous licence MIT - voir le fichier LICENSE pour plus de détails.
+This project is under MIT license - see the LICENSE file for more details.
