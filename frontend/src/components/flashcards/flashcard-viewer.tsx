@@ -66,7 +66,7 @@ export function FlashcardViewer({ flashcards, onEditCard }: FlashcardViewerProps
       <div className="flex flex-col gap-4 items-center justify-center p-6 border rounded-lg">
         <h3 className="text-xl font-semibold">Review Completed! 🎉</h3>
         <p className="text-muted-foreground text-center">
-          You've reviewed all {flashcards.length} flashcards in this set.
+          You&apos;ve reviewed all {flashcards.length} flashcards in this set.
         </p>
         <Button onClick={resetReview}>Start Over</Button>
       </div>

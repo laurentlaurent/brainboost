@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 type Flashcard = {
@@ -102,6 +102,13 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
     setShowResult(true);
   };
 
+  const handleQuizComplete = () => {
+    // Quiz completed
+    setCompleted(true);
+    setTimerActive(false);
+    onComplete(results);
+  };
+
   const handleNext = () => {
     if (currentCardIndex < flashcards.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
@@ -109,10 +116,7 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
       setUserAnswer('');
       setShowResult(false);
     } else {
-      // Quiz completed
-      setCompleted(true);
-      setTimerActive(false);
-      onComplete(results);
+      handleQuizComplete();
     }
   };
 

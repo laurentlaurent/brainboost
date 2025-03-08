@@ -1,74 +1,84 @@
-.PHONY: setup setup-backend setup-frontend run run-backend run-frontend clean help
+.PHONY: setup-backend setup-frontend run-backend run-frontend test-backend clean help
 
-# Default target
-.DEFAULT_GOAL := help
-
-# Colors for terminal output
-YELLOW=\033[1;33m
-GREEN=\033[1;32m
+# Couleurs pour les messages
+YELLOW=\033[0;33m
+GREEN=\033[0;32m
+BLUE=\033[0;34m
+RED=\033[0;31m
 NC=\033[0m # No Color
 
-help:
-	@echo "${YELLOW}Project-Anki-Review Makefile Commands:${NC}"
-	@echo "${GREEN}make setup${NC} - Install all dependencies for both backend and frontend"
-	@echo "${GREEN}make setup-backend${NC} - Install backend dependencies only"
-	@echo "${GREEN}make setup-frontend${NC} - Install frontend dependencies only"
-	@echo "${GREEN}make run${NC} - Run both backend and frontend in separate terminals"
-	@echo "${GREEN}make run-backend${NC} - Run backend server only"
-	@echo "${GREEN}make run-frontend${NC} - Run frontend development server only"
-	@echo "${GREEN}make clean${NC} - Remove virtual environments and node modules"
+# Variables
+BACKEND_DIR=backend
+FRONTEND_DIR=frontend
+VENV_DIR=$(BACKEND_DIR)/venv
 
-setup: setup-backend setup-frontend
-	@echo "${GREEN}✓ Setup completed for both backend and frontend${NC}"
+help:
+	@echo "${BLUE}BrainBoost - Assistant d'apprentissage par flashcards${NC}"
+	@echo ""
+	@echo "${YELLOW}Commandes disponibles:${NC}"
+	@echo "  ${GREEN}setup-backend${NC}    Installer les dépendances du backend"
+	@echo "  ${GREEN}setup-frontend${NC}   Installer les dépendances du frontend"
+	@echo "  ${GREEN}setup${NC}            Installer les dépendances backend et frontend"
+	@echo "  ${GREEN}run-backend${NC}      Démarrer le serveur backend"
+	@echo "  ${GREEN}run-frontend${NC}     Démarrer le serveur frontend"
+	@echo "  ${GREEN}run${NC}              Démarrer les serveurs backend et frontend"
+	@echo "  ${GREEN}test-backend${NC}     Tester la connexion à l'API Gemini"
+	@echo "  ${GREEN}clean${NC}            Nettoyer les fichiers temporaires"
+	@echo ""
+	@echo "${YELLOW}Exemple:${NC} make setup-backend"
 
 setup-backend:
-	@echo "${YELLOW}Setting up backend...${NC}"
-	cd backend && \
-	python -m venv venv && \
-	. venv/bin/activate && \
-	pip install -r requirements.txt
-	@echo "${GREEN}✓ Backend setup complete${NC}"
+	@echo "${BLUE}Installation des dépendances du backend...${NC}"
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		python -m venv $(VENV_DIR); \
+	fi
+	@. $(VENV_DIR)/bin/activate && pip install -r $(BACKEND_DIR)/requirements.txt
+	@if [ ! -f "$(BACKEND_DIR)/.env" ]; then \
+		cp $(BACKEND_DIR)/.env.example $(BACKEND_DIR)/.env; \
+		echo "${YELLOW}Fichier .env créé. Veuillez configurer votre clé API Gemini dans $(BACKEND_DIR)/.env${NC}"; \
+	fi
+	@echo "${GREEN}✅ Installation du backend terminée${NC}"
 
 setup-frontend:
-	@echo "${YELLOW}Setting up frontend...${NC}"
-	cd frontend && npm install
-	@echo "${GREEN}✓ Frontend setup complete${NC}"
+	@echo "${BLUE}Installation des dépendances du frontend...${NC}"
+	@cd $(FRONTEND_DIR) && npm install
+	@echo "${GREEN}✅ Installation du frontend terminée${NC}"
 
-run:
-	@echo "${YELLOW}Starting backend and frontend servers...${NC}"
-	@echo "${GREEN}Backend will run at: http://localhost:5000${NC}"
-	@echo "${GREEN}Frontend will run at: http://localhost:3000${NC}"
-	@gnome-terminal --title="Backend Server" -- bash -c "cd backend && source venv/bin/activate && python app.py; exec bash" || \
-	xterm -T "Backend Server" -e "cd backend && source venv/bin/activate && python app.py; exec bash" || \
-	konsole --new-tab -p tabtitle="Backend Server" -e "cd backend && source venv/bin/activate && python app.py; exec bash" || \
-	x-terminal-emulator -T "Backend Server" -e "cd backend && source venv/bin/activate && python app.py; exec bash" || \
-	echo "${YELLOW}Could not open terminal automatically for backend. Please run 'make run-backend' in a separate terminal.${NC}" &
-	@sleep 2
-	@gnome-terminal --title="Frontend Server" -- bash -c "cd frontend && npm run dev; exec bash" || \
-	xterm -T "Frontend Server" -e "cd frontend && npm run dev; exec bash" || \
-	konsole --new-tab -p tabtitle="Frontend Server" -e "cd frontend && npm run dev; exec bash" || \
-	x-terminal-emulator -T "Frontend Server" -e "cd frontend && npm run dev; exec bash" || \
-	echo "${YELLOW}Could not open terminal automatically for frontend. Please run 'make run-frontend' in a separate terminal.${NC}" &
+setup: setup-backend setup-frontend
+	@echo "${GREEN}✅ Installation terminée${NC}"
 
 run-backend:
-	@echo "${YELLOW}Starting backend server...${NC}"
-	cd backend && . venv/bin/activate && python app.py
+	@echo "${BLUE}Démarrage du serveur backend...${NC}"
+	@. $(VENV_DIR)/bin/activate && cd $(BACKEND_DIR) && python app.py
 
 run-frontend:
-	@echo "${YELLOW}Starting frontend server...${NC}"
-	cd frontend && npm run dev
+	@echo "${BLUE}Démarrage du serveur frontend...${NC}"
+	@cd $(FRONTEND_DIR) && npm run dev
+
+run:
+	@echo "${RED}Pour exécuter les deux serveurs simultanément, veuillez utiliser deux terminaux séparés:${NC}"
+	@echo "  ${YELLOW}Terminal 1:${NC} make run-backend"
+	@echo "  ${YELLOW}Terminal 2:${NC} make run-frontend"
+
+test-backend:
+	@echo "${BLUE}Test de la connexion à l'API Gemini...${NC}"
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		echo "${RED}Veuillez d'abord configurer le backend avec 'make setup-backend'${NC}"; \
+		exit 1; \
+	fi
+	@. $(VENV_DIR)/bin/activate && cd $(BACKEND_DIR) && python -c "import os, sys; sys.path.append('.'); from app import test_gemini_api; result = test_gemini_api(); sys.exit(0 if result else 1)"
+	@if [ $$? -eq 0 ]; then \
+		echo "${GREEN}✅ Connexion à l'API Gemini réussie${NC}"; \
+	else \
+		echo "${RED}❌ Échec de la connexion à l'API Gemini${NC}"; \
+		echo "${YELLOW}Vérifiez votre clé API dans $(BACKEND_DIR)/.env${NC}"; \
+	fi
 
 clean:
-	@echo "${YELLOW}Cleaning up...${NC}"
-	rm -rf backend/venv
-	rm -rf frontend/node_modules
-	@echo "${GREEN}✓ Cleanup complete${NC}"
-
-# Check if the requirements.txt exists, create it if not
-backend/requirements.txt:
-	@echo "${YELLOW}Creating requirements.txt...${NC}"
-	@echo "flask\nflask-cors\npypdf\npillow\npython-dotenv" > backend/requirements.txt
-	@echo "${GREEN}✓ requirements.txt created${NC}"
-
-# Ensure requirements.txt exists before setup-backend
-setup-backend: backend/requirements.txt
+	@echo "${BLUE}Nettoyage des fichiers temporaires...${NC}"
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
+	@find . -type f -name "*.pyc" -delete
+	@find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	@find . -type f -name ".coverage" -delete
+	@find . -type d -name "htmlcov" -exec rm -rf {} +
+	@echo "${GREEN}✅ Nettoyage terminé${NC}"

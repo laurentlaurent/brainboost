@@ -9,7 +9,17 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Define API backend URL
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+type Flashcard = {
+  id: string;
+  question: string;
+  answer: string;
+  tags: string[];
+  difficulty: number;
+  lastReviewed: string | null;
+  nextReview: string | null;
+};
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -21,11 +31,11 @@ export function FileUploadForm() {
     type: null,
     message: '',
   });
-  const [flashcards, setFlashcards] = useState<any[]>([]);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (_data: Record<string, unknown>) => {
     if (!file) return;
 
     setIsUploading(true);

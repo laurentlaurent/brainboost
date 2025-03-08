@@ -11,7 +11,7 @@ import { QuizMode } from '@/components/flashcards/quiz-mode';
 import axios from 'axios';
 
 // Define API backend URL
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Flashcard and Flashcard Set types
 type Flashcard = {
@@ -35,6 +35,12 @@ type FlashcardSetSummary = {
   id: string;
   title: string;
   count: number;
+};
+
+type QuizResult = {
+  cardId: string;
+  correct: boolean;
+  timeSpent: number;
 };
 
 export default function Home() {
@@ -107,7 +113,7 @@ export default function Home() {
     }
   };
 
-  const handleQuizComplete = (results: any[]) => {
+  const handleQuizComplete = (results: QuizResult[]) => {
     // Here you could implement functionality to update the spaced repetition
     // schedule based on quiz results, or store study statistics
     console.log('Quiz completed with results:', results);

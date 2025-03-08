@@ -30,7 +30,7 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
   const [tags, setTags] = useState<string[]>(card.tags || []);
   const [tagInput, setTagInput] = useState('');
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm({
     defaultValues: {
       question: card.question,
       answer: card.answer,
@@ -49,13 +49,13 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: Record<string, unknown>) => {
     const updatedCard = {
       ...card,
-      question: data.question,
-      answer: data.answer,
+      question: data.question as string,
+      answer: data.answer as string,
       tags,
-      difficulty: parseInt(data.difficulty, 10),
+      difficulty: parseInt(data.difficulty as string, 10),
     };
     onSave(updatedCard);
     onClose();
