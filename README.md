@@ -19,13 +19,32 @@ The project is divided into two main parts:
 
 ## Prerequisites
 
-- Python 3.8 or higher
-- Node.js 18.x or higher
+- Python 3.8 or higher (for local development)
+- Node.js 18.x or higher (for local development)
+- Docker and Docker Compose (for containerized deployment)
 - A Google Gemini API key (free)
 
 ## Installation
 
-### With Make (recommended)
+### Using Docker (recommended)
+
+```bash
+# Copy environment files
+cp backend/.env.example backend/.env
+cp .env.example .env
+
+# Edit backend/.env to add your Gemini API key
+# GEMINI_API_KEY=your_key_here
+
+# Start the application with Docker Compose
+docker compose up --build
+```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+
+### With Make (local development)
 
 ```bash
 # Install all dependencies
@@ -34,7 +53,7 @@ make setup
 # Configure Gemini API key in backend/.env
 ```
 
-### Manual Installation
+### Manual Installation (local development)
 
 #### Backend
 
@@ -55,7 +74,23 @@ npm install
 
 ## Starting the Application
 
-### With Make
+### With Docker
+
+```bash
+# Start all services
+docker compose up
+
+# Start in detached mode
+docker compose up -d
+
+# Rebuild and start
+docker compose up --build
+
+# Stop all services
+docker compose down
+```
+
+### With Make (local development)
 
 ```bash
 # Terminal 1: Start the backend
@@ -65,7 +100,7 @@ make run-backend
 make run-frontend
 ```
 
-### Manual Start
+### Manual Start (local development)
 
 #### Backend
 
@@ -82,6 +117,25 @@ cd frontend
 npm run dev
 ```
 
+## Environment Configuration
+
+### Backend (.env)
+```
+GEMINI_API_KEY=your_gemini_api_key
+FLASK_APP=app.py
+FLASK_ENV=development
+FLASK_DEBUG=1
+PORT=5000
+HOST=0.0.0.0
+```
+
+### Frontend (.env)
+```
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
+
+When using Docker Compose, the frontend will automatically connect to the backend service.
+
 ## Getting a Gemini API Key
 
 1. Visit [Google AI Studio](https://ai.google.dev/)
@@ -96,6 +150,12 @@ To verify that the Gemini API is working correctly:
 ```bash
 make test-backend
 ```
+
+## Deployment
+
+The project includes configuration files for deployment:
+- `vercel.json` for deploying the frontend to Vercel
+- Docker configuration for containerized deployment
 
 ## License
 
