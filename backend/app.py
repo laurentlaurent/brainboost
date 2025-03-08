@@ -27,7 +27,7 @@ CORS(app)  # Permet les requêtes cross-origin pour le développement
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'txt'}
+ALLOWED_EXTENSIONS = {'pdf'}#, 'png', 'jpg', 'jpeg', 'txt'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 
@@ -62,6 +62,54 @@ def extract_text_from_image(file_path):
     """
     return "Le texte extrait de l'image serait affiché ici. Installez pytesseract pour l'OCR."
 
+def estimate_card_difficulty(question, answer):
+    """
+    Estime la difficulté d'une flashcard en fonction de la complexité
+    de la question et de la réponse.
+    
+    Échelle de difficulté:
+    1 - Très facile
+    2 - Facile 
+    3 - Moyen
+    4 - Difficile
+    5 - Très difficile
+    """
+    # Initialisation du score de difficulté
+    difficulty_score = 0
+    
+    # Facteurs qui influencent la difficulté
+    
+    # 1. Longueur de la réponse (les réponses plus longues sont généralement plus difficiles)
+    answer_length = len(answer.split())
+    if answer_length < 5:
+        difficulty_score += 1  # Très court, probablement facile
+    elif answer_length < 15:
+        difficulty_score += 2  # Longueur moyenne
+    else:
+        difficulty_score += 3  # Réponse longue, plus difficile à mémoriser
+    
+    # 2. Complexité linguistique (présence de termes techniques, nombres, etc.)
+    # Recherche de termes techniques ou complexes, nombres, dates
+    technical_indicators = [
+        r'\d+[.,]?\d*',  # Nombres avec décimales potentielles
+        r'\b[A-Z]{2,}\b',  # Acronymes en majuscules
+        r'\b[A-Z][a-z]+(?:[A-Z][a-z]+)+\b',  # CamelCase (probablement des termes techniques)
+    ]
+    
+    complexity_score = 0
+    for indicator in technical_indicators:
+        if re.search(indicator, question) or re.search(indicator, answer):
+            complexity_score += 1
+    
+    # Limiter le score de complexité à un maximum de 2
+    complexity_score = min(complexity_score, 2)
+    difficulty_score += complexity_score
+    
+    # Normaliser le score final sur l'échelle 1-5
+    difficulty_score = max(1, min(difficulty_score, 5))
+    
+    return difficulty_score
+
 def generate_flashcards_from_text(text, num_cards=5):
     """Génère des flashcards à partir du texte en utilisant Gemini"""
     try:
@@ -73,7 +121,7 @@ def generate_flashcards_from_text(text, num_cards=5):
         text_to_process = text[:4000] if len(text) > 4000 else text
         
         # Créer le modèle Gemini
-        model = genai.GenerativeModel(model_name='gemini-1.5-flash')
+        model = genai.GenerativeModel(model_name='gemini-2.0-flash')
         
         # Tester la connexion API avant de continuer
         try:
@@ -94,16 +142,24 @@ INSTRUCTIONS:
 2. Crée exactement {num_cards} cartes avec des questions pertinentes et des réponses précises.
 3. Les questions doivent être claires et spécifiques.
 4. Les réponses doivent être concises mais complètes.
-5. Ta réponse doit être un tableau JSON valide au format suivant:
+5. Attribue un niveau de difficulté à chaque carte sur une échelle de 1 à 5 où:
+   - 1 = Très facile (connaissances de base)
+   - 2 = Facile (rappel simple)
+   - 3 = Moyenne (compréhension requise)
+   - 4 = Difficile (application de concepts)
+   - 5 = Très difficile (analyse ou synthèse complexe)
+6. Ta réponse doit être un tableau JSON valide au format suivant:
 
 [
   {{
     "question": "Question 1?",
-    "answer": "Réponse 1"
+    "answer": "Réponse 1",
+    "difficulty": 2
   }},
   {{
     "question": "Question 2?",
-    "answer": "Réponse 2"
+    "answer": "Réponse 2",
+    "difficulty": 4
   }}
 ]
 
@@ -151,10 +207,16 @@ Réponds UNIQUEMENT avec le JSON, sans texte explicatif avant ou après."""
             # Ajouter des IDs uniques à chaque flashcard
             for card in flashcards:
                 card["id"] = str(uuid.uuid4())
+
+                # Vérifier si la difficulté est déjà définie par Gemini
+                if "difficulty" not in card or not isinstance(card["difficulty"], int) or card["difficulty"] < 1 or card["difficulty"] > 5:
+                    # Si pas de difficulté valide, estimer avec notre algorithme
+                    card["difficulty"] = estimate_card_difficulty(card["question"], card["answer"])
+
                 # Ajouter des champs supplémentaires pour l'interface utilisateur
-                card["difficulty"] = 0  # 0-4: pas encore évalué jusqu'à difficile
                 card["lastReviewed"] = None
                 card["nextReview"] = None
+                card["reviewCount"] = 0
             
             return flashcards
         
@@ -184,27 +246,35 @@ def generate_default_flashcards(text, num_cards=5):
                 question_words = words[:min(5, len(words)//2)]
                 question = " ".join(question_words) + "...?"
                 answer = sentence
+                
+                # Estimer la difficulté
+                difficulty = estimate_card_difficulty(question, answer)
+                
                 flashcards.append({
                     "id": str(uuid.uuid4()),
                     "question": question,
                     "answer": answer,
-                    "difficulty": 0,
+                    "difficulty": difficulty,
                     "lastReviewed": None,
-                    "nextReview": None
+                    "nextReview": None,
+                    "reviewCount": 0
                 })
     
     # Si pas assez de sentences, ajouter des cartes génériques
     while len(flashcards) < num_cards:
+        difficulty = 1  # Les cartes par défaut sont généralement faciles
         flashcards.append({
             "id": str(uuid.uuid4()),
             "question": f"Question {len(flashcards) + 1} générée automatiquement",
             "answer": f"Ceci est une carte par défaut générée car l'IA n'a pas pu produire suffisamment de cartes pertinentes.",
-            "difficulty": 0,
+            "difficulty": difficulty,
             "lastReviewed": None,
-            "nextReview": None
+            "nextReview": None,
+            "reviewCount": 0
         })
     
     return flashcards
+
 
 def test_gemini_api():
     """Teste la connexion à l'API Gemini et retourne des informations détaillées"""
@@ -212,7 +282,7 @@ def test_gemini_api():
         return {"success": False, "message": "Pas de clé API configurée"}
 
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         response = model.generate_content("Dis bonjour en français")
         return {
             "success": True,
