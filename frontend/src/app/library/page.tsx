@@ -49,8 +49,23 @@ export default function LibraryPage() {
     }
   };
 
-  const handleSelectSet = (setId: string) => {
-    router.push(`/study/${setId}`);
+  const handleSelectSet = async (setId: string) => {
+    try {
+      // Fetch the flashcard set data before navigation
+      const response = await axios.get(`${API_URL}/flashcards/${setId}`);
+      if (response.data) {
+        // Pass the fetched data through router state
+        window.history.pushState({ flashcardSet: response.data }, '', `/study/${setId}`);
+        router.push(`/study/${setId}`);
+      }
+    } catch (error) {
+      console.error('Error fetching flashcard set:', error);
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.error || 'Failed to load flashcard set');
+      } else {
+        alert('Failed to load flashcard set');
+      }
+    }
   };
 
   const handleDeleteSet = async (setId: string, event: React.MouseEvent) => {

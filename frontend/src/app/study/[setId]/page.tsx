@@ -52,13 +52,21 @@ export default function StudyPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('Study page mounted, setId:', setId);
     if (setId) {
       const fetchFlashcardSet = async (id: string) => {
-        console.log('Attempting to fetch:', `${API_URL}/flashcards/${id}`);
         try {
           setIsLoading(true);
           setError(null);
+          
+          // Try to get the data from navigation state first
+          const cachedData = window.history.state?.flashcardSet;
+          if (cachedData && cachedData.id === id) {
+            setSelectedSet(cachedData);
+            setIsLoading(false);
+            return;
+          }
+
+          // If no cached data, fetch from API
           const response = await axios.get(`${API_URL}/flashcards/${id}`);
           setSelectedSet(response.data);
         } catch (error) {
