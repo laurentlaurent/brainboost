@@ -1,6 +1,6 @@
 # BrainBoost
 
-BrainBoost is an interactive web application that uses AI to generate flashcards from various types of content. The application facilitates learning by automatically transforming PDF documents, images, or text into question-answer cards.
+BrainBoost is an interactive web application that uses AI to generate flashcards from various types of content. The application facilitates learning by automatically transforming PDF documents into question-answer cards.
 
 BrainBoost was built in just 24 hours during a hackathon by:
 - [Laurent](https://github.com/laurentlaurent/)
