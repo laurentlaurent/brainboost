@@ -27,8 +27,24 @@ The project is divided into two main parts:
 - Node.js 18.x or higher (for local development)
 - Docker and Docker Compose (for containerized deployment)
 - A Google Gemini API key (free)
+- A NeonDB account (free tier available) for production database
 
 ## Installation
+
+### Setting up NeonDB (for production)
+
+1. Create a NeonDB account at [https://neon.tech](https://neon.tech)
+2. Create a new project
+3. In your project dashboard:
+   - Click "Connection Details"
+   - Select "Prisma" to get the connection string
+   - Copy the connection string that starts with `postgresql://` (not `postgres://`)
+4. Update your `.env.backend` file with the connection string:
+   ```bash
+   DATABASE_URL=postgresql://your-user:your-password@your-endpoint/your-database?sslmode=require
+   ```
+
+> **Important**: Use the connection string that starts with `postgresql://` (not `postgres://`) to avoid configuration issues.
 
 ### Using Docker (recommended)
 
@@ -124,13 +140,25 @@ npm run dev
 ## Environment Configuration
 
 ### Backend (.env.backend)
-```
+```bash
+# API Keys
 GEMINI_API_KEY=your_gemini_api_key
+
+# Configuration Flask
 FLASK_APP=app.py
 FLASK_ENV=development
 FLASK_DEBUG=1
+
+# Server Configuration
 PORT=5000
 HOST=0.0.0.0
+
+# Database Configuration
+# For local development with Docker:
+DATABASE_URL=postgresql://brainboost:brainboost@postgres:5432/brainboost
+
+# For production with NeonDB:
+# DATABASE_URL=postgresql://your-user:your-password@your-endpoint/your-database?sslmode=require
 ```
 
 ### Frontend (.env.frontend)
