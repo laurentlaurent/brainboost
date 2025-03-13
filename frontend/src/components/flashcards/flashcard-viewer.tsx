@@ -21,6 +21,17 @@ type FlashcardViewerProps = {
   onEditCard?: (card: Flashcard) => void;
 };
 
+const getDifficultyLabel = (difficulty: number): string => {
+  const labels = {
+    1: "Very Easy",
+    2: "Easy",
+    3: "Medium", 
+    4: "Hard",
+    5: "Very Hard"
+  };
+  return labels[difficulty as keyof typeof labels] || "Unknown";
+};
+
 export function FlashcardViewer({ flashcards, setId, onEditCard }: FlashcardViewerProps) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -117,7 +128,7 @@ export function FlashcardViewer({ flashcards, setId, onEditCard }: FlashcardView
               ))}
             </div>
             <span className="text-xs text-muted-foreground">
-              Difficulty: {currentCard.difficulty}
+              Difficulty: {getDifficultyLabel(currentCard.difficulty)}
             </span>
           </div>
         </CardHeader>

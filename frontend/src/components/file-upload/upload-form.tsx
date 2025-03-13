@@ -91,24 +91,30 @@ export function FileUploadForm() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
-      // Check if file type is allowed (PDF, PNG, JPG, JPEG)
+      // Check if file type is allowed (PDF)
       const fileType = selectedFile.type;
-      if (
-        fileType === 'application/pdf' ||
-        fileType === 'image/png' ||
-        fileType === 'image/jpeg' ||
-        fileType === 'image/jpg'
-      ) {
+      if (fileType === 'application/pdf') {
         setFile(selectedFile);
         setUploadStatus({ type: null, message: '' });
       } else {
         setFile(null);
         setUploadStatus({
           type: 'error',
-          message: 'Please upload a PDF or image (PNG, JPG, JPEG) file.',
+          message: 'Please upload a PDF file.',
         });
       }
     }
+  };
+
+  const getDifficultyLabel = (difficulty: number): string => {
+    const labels = {
+      1: "Very Easy",
+      2: "Easy",
+      3: "Medium",
+      4: "Hard",
+      5: "Very Hard"
+    };
+    return labels[difficulty as keyof typeof labels] || "Unknown";
   };
 
   return (
@@ -117,7 +123,7 @@ export function FileUploadForm() {
         <CardHeader>
           <CardTitle>Upload Study Material</CardTitle>
           <CardDescription>
-            Upload PDFs or images to automatically generate flashcards
+            Upload PDFs to automatically generate flashcards (May be faster on your own server)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -128,7 +134,7 @@ export function FileUploadForm() {
                 type="file"
                 {...register('file', { required: true })}
                 onChange={handleFileChange}
-                accept=".pdf,.png,.jpg,.jpeg"
+                accept=".pdf"
                 className="cursor-pointer"
                 disabled={isUploading}
               />
@@ -184,7 +190,7 @@ export function FileUploadForm() {
                     ))}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Difficulty: {card.difficulty}
+                    Difficulty: {getDifficultyLabel(card.difficulty)}
                   </div>
                 </CardFooter>
               </Card>

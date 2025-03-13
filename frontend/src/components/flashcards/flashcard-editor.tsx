@@ -112,9 +112,11 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
                   <SelectValue placeholder="Select difficulty" />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-[60]">
-                  <SelectItem value="1">Easy</SelectItem>
-                  <SelectItem value="2">Medium</SelectItem>
-                  <SelectItem value="3">Hard</SelectItem>
+                  <SelectItem value="1">Very Easy</SelectItem>
+                  <SelectItem value="2">Easy</SelectItem>
+                  <SelectItem value="3">Medium</SelectItem>
+                  <SelectItem value="4">Hard</SelectItem>
+                  <SelectItem value="5">Very Hard</SelectItem>
                 </SelectContent>
               </Select>
             </div>

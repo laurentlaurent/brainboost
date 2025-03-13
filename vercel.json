@@ -12,11 +12,15 @@
       "dest": "https://brainboost-j532.onrender.com/api/$1"
     },
     {
+      "src": "/study/[^/]+",
+      "dest": "frontend/study/[setId]/page"
+    },
+    {
       "src": "/(.*)",
       "dest": "frontend/$1"
     }
   ],
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://brainboost-j532.onrender.com/api/"
+    "NEXT_PUBLIC_API_URL": "https://brainboost-j532.onrender.com/api"
   }
 }
