@@ -54,7 +54,8 @@ setup: setup-backend setup-frontend
 
 run-backend:
 	@echo "${BLUE}Démarrage du serveur backend...${NC}"
-	@. $(VENV_DIR)/bin/activate && cd $(BACKEND_DIR) && python app.py
+	@chmod +x $(BACKEND_DIR)/run_backend.sh
+	@$(BACKEND_DIR)/run_backend.sh
 
 run-frontend:
 	@echo "${BLUE}Démarrage du serveur frontend...${NC}"

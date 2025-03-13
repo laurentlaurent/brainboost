@@ -52,8 +52,10 @@ export default function StudyPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('Study page mounted, setId:', setId);
     if (setId) {
       const fetchFlashcardSet = async (id: string) => {
+        console.log('Attempting to fetch:', `${API_URL}/flashcards/${id}`);
         try {
           setIsLoading(true);
           setError(null);
