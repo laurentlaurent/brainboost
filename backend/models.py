@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+import os
 
 Base = declarative_base()
 
@@ -28,7 +29,15 @@ class Flashcard(Base):
     review_count = Column(Integer, default=0)
     flashcard_set = relationship('FlashcardSet', back_populates='flashcards')
 
-def init_db(database_url):
+def init_db(database_url=None):
+    """Initialize database with the provided URL or from environment variables"""
+    if database_url is None:
+        # Use the unpooled URL first if available, otherwise use the standard URL
+        database_url = os.getenv('DATABASE_URL_UNPOOLED') or os.getenv('DATABASE_URL')
+        
+    if not database_url:
+        raise ValueError("No database URL configured. Set either DATABASE_URL or DATABASE_URL_UNPOOLED in environment variables.")
+        
     engine = create_engine(database_url)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
