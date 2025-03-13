@@ -23,6 +23,7 @@ export default function LibraryPage() {
   const router = useRouter();
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSetSummary[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,10 +33,17 @@ export default function LibraryPage() {
   const fetchFlashcardSets = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await axios.get(`${API_URL}/flashcards`);
       setFlashcardSets(response.data);
     } catch (error) {
       console.error('Error fetching flashcard sets:', error);
+      // Type guard to safely access error.response
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.error || 'Failed to load flashcard sets');
+      } else {
+        setError('Failed to load flashcard sets');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -84,11 +92,21 @@ export default function LibraryPage() {
               <div className="flex justify-center py-8">
                 <p>Loading...</p>
               </div>
+            ) : error ? (
+              <div className="text-center py-8 text-red-600">
+                <p>{error}</p>
+                <Button className="mt-4" onClick={fetchFlashcardSets}>
+                  Try Again
+                </Button>
+              </div>
             ) : flashcardSets.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
                   No flashcard sets yet. Upload a document to get started.
                 </p>
+                <Button className="mt-4" onClick={() => router.push('/upload')}>
+                  Upload Document
+                </Button>
               </div>
             ) : (
               <div className="grid gap-4">

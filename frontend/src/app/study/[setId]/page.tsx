@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { FlashcardViewer } from '@/components/flashcards/flashcard-viewer';
 import { FlashcardEditor } from '@/components/flashcards/flashcard-editor';
 import { QuizMode } from '@/components/flashcards/quiz-mode';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 // Define API backend URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -40,6 +41,7 @@ type QuizResult = {
 
 export default function StudyPage() {
   const params = useParams();
+  const router = useRouter();  
   const setId = params.setId as string;
   
   const [selectedSet, setSelectedSet] = useState<FlashcardSet | null>(null);
@@ -47,24 +49,39 @@ export default function StudyPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [cardToEdit, setCardToEdit] = useState<Flashcard | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (setId) {
+      const fetchFlashcardSet = async (id: string) => {
+        try {
+          setIsLoading(true);
+          setError(null);
+          const response = await axios.get(`${API_URL}/flashcards/${id}`);
+          setSelectedSet(response.data);
+        } catch (error) {
+          console.error('Error fetching flashcard set:', error);
+          
+          if (axios.isAxiosError(error)) {
+            setError(error.response?.data?.error || 'Failed to fetch flashcard set');
+            
+            // If we get a 404, the set doesn't exist - redirect to library after a short delay
+            if (error.response?.status === 404) {
+              setTimeout(() => {
+                router.push('/library');
+              }, 3000);
+            }
+          } else {
+            setError('Failed to fetch flashcard set');
+          }
+        } finally {
+          setIsLoading(false);
+        }
+      };
+  
       fetchFlashcardSet(setId);
     }
-  }, [setId]);
-
-  const fetchFlashcardSet = async (id: string) => {
-    try {
-      setIsLoading(true);
-      const response = await axios.get(`${API_URL}/flashcards/${id}`);
-      setSelectedSet(response.data);
-    } catch (error) {
-      console.error('Error fetching flashcard set:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [setId, router]);
 
   const handleEditCard = (card: Flashcard) => {
     setCardToEdit(card);
@@ -115,9 +132,35 @@ export default function StudyPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
-        <div className="flex justify-center">
-          <p>Loading...</p>
-        </div>
+        <Card className="flex justify-center items-center h-40">
+          <CardContent>
+            <p>Loading flashcards...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Card>
+          <CardHeader>
+            <h2 className="text-xl font-semibold text-red-600">Error</h2>
+          </CardHeader>
+          <CardContent>
+            <p>{error}</p>
+            {error.includes('not found') && (
+              <p className="mt-4">Redirecting to library in a few seconds...</p>
+            )}
+            <Button 
+              className="mt-4" 
+              onClick={() => router.push('/library')}
+            >
+              Return to Library
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -127,6 +170,12 @@ export default function StudyPage() {
       <div className="container mx-auto py-8 px-4">
         <div className="text-center">
           <p className="text-muted-foreground">Flashcard set not found</p>
+          <Button 
+            className="mt-4" 
+            onClick={() => router.push('/library')}
+          >
+            Return to Library
+          </Button>
         </div>
       </div>
     );

@@ -435,44 +435,72 @@ def get_all_flashcard_sets():
 @app.route('/api/flashcards/<set_id>', methods=['GET'])
 def get_flashcard_set(set_id):
     """Récupérer un jeu spécifique de flashcards"""
-    flashcard_set = db_session.query(FlashcardSet).get(set_id)
-    if not flashcard_set:
-        return jsonify({"error": "Jeu de flashcards non trouvé"}), 404
-    
-    return jsonify({
-        "id": flashcard_set.id,
-        "title": flashcard_set.title,
-        "source": flashcard_set.source,
-        "creation_date": flashcard_set.creation_date.isoformat() if flashcard_set.creation_date else None,
-        "flashcards": [{
-            "id": card.id,
-            "question": card.question,
-            "answer": card.answer,
-            "tags": card.tags,
-            "difficulty": card.difficulty,
-            "lastReviewed": card.last_reviewed.isoformat() if card.last_reviewed else None,
-            "nextReview": card.next_review.isoformat() if card.next_review else None,
-            "reviewCount": card.review_count
-        } for card in flashcard_set.flashcards]
-    }), 200
+    try:
+        flashcard_set = db_session.query(FlashcardSet).get(set_id)
+        if not flashcard_set:
+            return jsonify({"error": "Jeu de flashcards non trouvé", "setId": set_id}), 404
+        
+        return jsonify({
+            "id": flashcard_set.id,
+            "title": flashcard_set.title,
+            "source": flashcard_set.source,
+            "creation_date": flashcard_set.creation_date.isoformat() if flashcard_set.creation_date else None,
+            "flashcards": [{
+                "id": card.id,
+                "question": card.question,
+                "answer": card.answer,
+                "tags": card.tags or [],
+                "difficulty": card.difficulty,
+                "lastReviewed": card.last_reviewed.isoformat() if card.last_reviewed else None,
+                "nextReview": card.next_review.isoformat() if card.next_review else None,
+                "reviewCount": card.review_count or 0
+            } for card in flashcard_set.flashcards]
+        }), 200
+    except Exception as e:
+        db_session.rollback()
+        return jsonify({"error": f"Database error: {str(e)}", "setId": set_id}), 500
 
 @app.route('/api/flashcards/<set_id>', methods=['PUT'])
 def update_flashcard_set(set_id):
     """Mettre à jour un jeu spécifique de flashcards"""
-    if set_id not in FLASHCARDS_DB:
+    flashcard_set = db_session.query(FlashcardSet).get(set_id)
+    if not flashcard_set:
         return jsonify({"error": "Jeu de flashcards non trouvé"}), 404
     
     data = request.json
     
     # Mise à jour du jeu de flashcards
     if "title" in data:
-        FLASHCARDS_DB[set_id]["title"] = data["title"]
+        flashcard_set.title = data["title"]
     
-    if "flashcards" in data:
-        FLASHCARDS_DB[set_id]["flashcards"] = data["flashcards"]
+    if "flashcards" in data and isinstance(data["flashcards"], list):
+        # This is a more complex update that would need to match flashcards by ID
+        for card_data in data["flashcards"]:
+            if "id" in card_data:
+                # Find and update existing card
+                for card in flashcard_set.flashcards:
+                    if card.id == card_data["id"]:
+                        if "question" in card_data:
+                            card.question = card_data["question"]
+                        if "answer" in card_data:
+                            card.answer = card_data["answer"]
+                        if "difficulty" in card_data:
+                            card.difficulty = card_data["difficulty"]
+                        if "lastReviewed" in card_data and card_data["lastReviewed"]:
+                            card.last_reviewed = datetime.datetime.fromisoformat(card_data["lastReviewed"])
+                        if "nextReview" in card_data and card_data["nextReview"]:
+                            card.next_review = datetime.datetime.fromisoformat(card_data["nextReview"])
+                        if "reviewCount" in card_data:
+                            card.review_count = card_data["reviewCount"]
+                        if "tags" in card_data:
+                            card.tags = card_data["tags"]
+                        break
     
-    # Save changes to file
-    save_flashcards_db(FLASHCARDS_DB)
+    try:
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
     
     return jsonify({
         "success": True,
@@ -483,38 +511,60 @@ def update_flashcard_set(set_id):
 @app.route('/api/flashcards/<set_id>/cards/<card_id>', methods=['PUT'])
 def update_flashcard(set_id, card_id):
     """Update a specific flashcard in a set"""
-    if set_id not in FLASHCARDS_DB:
-        return jsonify({"error": "Flashcard set not found"}), 404
+    try:
+        flashcard_set = db_session.query(FlashcardSet).get(set_id)
+        if not flashcard_set:
+            return jsonify({"error": "Flashcard set not found", "setId": set_id}), 404
+        
+        # Find the card to update - using more optimized query
+        card = db_session.query(Flashcard).filter_by(id=card_id, set_id=set_id).first()
+        
+        if card is None:
+            return jsonify({"error": "Card not found", "cardId": card_id}), 404
+        
+        data = request.json
     
-    data = request.json
+        # Update card fields
+        if "question" in data:
+            card.question = data["question"]
+        if "answer" in data:
+            card.answer = data["answer"]
+        if "difficulty" in data:
+            card.difficulty = data["difficulty"]
+        if "lastReviewed" in data and data["lastReviewed"]:
+            card.last_reviewed = datetime.datetime.fromisoformat(data["lastReviewed"])
+        if "nextReview" in data and data["nextReview"]:
+            card.next_review = datetime.datetime.fromisoformat(data["nextReview"])
+        if "reviewCount" in data:
+            card.review_count = data["reviewCount"]
+        if "tags" in data:
+            card.tags = data["tags"]
     
-    # Find the card to update
-    card_index = None
-    for i, card in enumerate(FLASHCARDS_DB[set_id]["flashcards"]):
-        if card["id"] == card_id:
-            card_index = i
-            break
-    
-    if card_index is None:
-        return jsonify({"error": "Card not found"}), 404
-    
-    # Update the card fields while preserving the card ID
-    updated_card = {
-        **FLASHCARDS_DB[set_id]["flashcards"][card_index],  # Preserve existing fields
-        **data,  # Update with new data
-        "id": card_id  # Ensure ID remains unchanged
-    }
-    
-    FLASHCARDS_DB[set_id]["flashcards"][card_index] = updated_card
-    
-    # Save changes to file
-    save_flashcards_db(FLASHCARDS_DB)
-    
-    return jsonify({
-        "success": True,
-        "message": "Flashcard updated successfully",
-        "card": updated_card
-    }), 200
+        try:
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            return jsonify({"error": f"Database error: {str(e)}"}), 500
+        
+        updated_card = {
+            "id": card.id,
+            "question": card.question,
+            "answer": card.answer,
+            "tags": card.tags,
+            "difficulty": card.difficulty,
+            "lastReviewed": card.last_reviewed.isoformat() if card.last_reviewed else None,
+            "nextReview": card.next_review.isoformat() if card.next_review else None,
+            "reviewCount": card.review_count
+        }
+        
+        return jsonify({
+            "success": True,
+            "message": "Flashcard updated successfully",
+            "card": updated_card
+        }), 200
+    except Exception as e:
+        db_session.rollback()
+        return jsonify({"error": f"Database error: {str(e)}", "setId": set_id}), 500
 
 @app.route('/api/flashcards/<set_id>', methods=['DELETE'])
 def delete_flashcard_set(set_id):
@@ -557,22 +607,39 @@ def generate_from_text():
         }), 200  # Return 200 to show it worked, but with error info
     
     # Génération des flashcards
-    flashcards = generate_flashcards_from_text(text, num_cards)
+    flashcards_data = generate_flashcards_from_text(text, num_cards)
     
     # Vérifier si nous avons des flashcards générées par Gemini ou par défaut
-    is_default = any("générée automatiquement" in card.get("question", "") for card in flashcards)
+    is_default = any("générée automatiquement" in card.get("question", "") for card in flashcards_data)
     
-    # Stockage des flashcards dans notre "base de données"
+    # Create new flashcard set in database
     set_id = str(uuid.uuid4())
-    FLASHCARDS_DB[set_id] = {
-        "title": title,
-        "source": "Texte manuel",
-        "creation_date": datetime.datetime.now().isoformat(),
-        "flashcards": flashcards
-    }
+    flashcard_set = FlashcardSet(
+        id=set_id,
+        title=title,
+        source="Texte manuel",
+        creation_date=datetime.datetime.now()
+    )
     
-    # Save changes to file
-    save_flashcards_db(FLASHCARDS_DB)
+    for card_data in flashcards_data:
+        flashcard = Flashcard(
+            id=card_data['id'],
+            question=card_data['question'],
+            answer=card_data['answer'],
+            tags=card_data.get('tags', []),
+            difficulty=card_data['difficulty'],
+            last_reviewed=None,
+            next_review=None,
+            review_count=0
+        )
+        flashcard_set.flashcards.append(flashcard)
+    
+    try:
+        db_session.add(flashcard_set)
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
     
     return jsonify({
         "success": True,
@@ -581,7 +648,7 @@ def generate_from_text():
         "gemini_status": gemini_status if not is_default else "Fallback utilisé",
         "set_id": set_id,
         "title": title,
-        "flashcards": flashcards
+        "flashcards": flashcards_data
     }), 200
 
 if __name__ == '__main__':
