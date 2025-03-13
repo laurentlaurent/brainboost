@@ -1,4 +1,4 @@
-.PHONY: setup-backend setup-frontend run-backend run-frontend test-backend clean help
+.PHONY: setup-backend setup-frontend run-backend run-frontend test-backend clean help db-init docker-compose-up docker-compose-down db-migrate
 
 # Couleurs pour les messages
 YELLOW=\033[0;33m
@@ -25,6 +25,10 @@ help:
 	@echo "  ${GREEN}run${NC}              Démarrer les serveurs backend et frontend"
 	@echo "  ${GREEN}test-backend${NC}     Tester la connexion à l'API Gemini"
 	@echo "  ${GREEN}clean${NC}            Nettoyer les fichiers temporaires"
+	@echo "  ${GREEN}docker-compose-up${NC}   Démarrer les services Docker"
+	@echo "  ${GREEN}docker-compose-down${NC} Arrêter les services Docker"
+	@echo "  ${GREEN}db-init${NC}            Initialiser la base de données"
+	@echo "  ${GREEN}db-migrate${NC}         Migrer les données JSON vers la base de données"
 	@echo ""
 	@echo "${YELLOW}Exemple:${NC} make setup-backend"
 
@@ -87,3 +91,24 @@ clean:
 	@find . -type f -name ".coverage" -delete
 	@find . -type d -name "htmlcov" -exec rm -rf {} +
 	@echo "${GREEN}✅ Nettoyage terminé${NC}"
+
+# Database commands
+db-init:
+	@echo "${BLUE}Initializing database...${NC}"
+	@. $(VENV_DIR)/bin/activate && cd $(BACKEND_DIR) && python -c "from models import init_db; init_db()"
+	@echo "${GREEN}✅ Database initialized${NC}"
+
+db-migrate:
+	@echo "${BLUE}Migrating JSON data to database...${NC}"
+	@. $(VENV_DIR)/bin/activate && cd $(BACKEND_DIR) && python migrate_json_to_db.py
+	@echo "${GREEN}✅ Migration completed${NC}"
+
+docker-compose-up:
+	@echo "${BLUE}Starting Docker services...${NC}"
+	@docker compose up -d
+	@echo "${GREEN}✅ Services started${NC}"
+
+docker-compose-down:
+	@echo "${BLUE}Stopping Docker services...${NC}"
+	@docker compose down
+	@echo "${GREEN}✅ Services stopped${NC}"

@@ -10,6 +10,8 @@ services:
     env_file:
       - .env.backend
     restart: unless-stopped
+    depends_on:
+      - postgres
 
   frontend:
     build:
@@ -22,3 +24,17 @@ services:
     env_file:
       - .env.frontend
     restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: brainboost
+      POSTGRES_PASSWORD: brainboost
+      POSTGRES_DB: brainboost
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

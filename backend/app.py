@@ -11,6 +11,8 @@ from PIL import Image
 import io
 import google.generativeai as genai
 from dotenv import load_dotenv
+from models import FlashcardSet, Flashcard
+from db import db_session, init_db, shutdown_session
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -24,6 +26,9 @@ else:
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+
+# Register database session cleanup
+app.teardown_appcontext(shutdown_session)
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
@@ -379,18 +384,36 @@ def upload_file():
             "flashcards": flashcards
         }
         
-        # Sauvegarder les changements dans le fichier
-        save_flashcards_db(FLASHCARDS_DB)
+        # Create new flashcard set in database
+        flashcard_set = FlashcardSet(
+            id=set_id,
+            title=filename.rsplit('.', 1)[0],
+            source=filename,
+            creation_date=datetime.datetime.now()
+        )
         
+        for card_data in flashcards:
+            flashcard = Flashcard(
+                id=card_data['id'],
+                question=card_data['question'],
+                answer=card_data['answer'],
+                tags=card_data.get('tags', []),
+                difficulty=card_data['difficulty']
+            )
+            flashcard_set.flashcards.append(flashcard)
+        
+        try:
+            db_session.add(flashcard_set)
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            return jsonify({"error": f"Database error: {str(e)}"}), 500
+
         return jsonify({
             "success": True,
-            "message": "Fichier traité avec succès",
-            "gemini_used": not is_default,
-            "gemini_status": gemini_status if not is_default else "Fallback utilisé",
+            "message": "File processed successfully",
             "set_id": set_id,
-            "title": FLASHCARDS_DB[set_id]["title"],
-            "flashcards": flashcards,
-            "text_length": len(text)
+            "flashcards": flashcards
         }), 200
     
     return jsonify({"error": "Type de fichier non autorisé"}), 400
@@ -398,26 +421,40 @@ def upload_file():
 @app.route('/api/flashcards', methods=['GET'])
 def get_all_flashcard_sets():
     """Récupérer tous les jeux de flashcards"""
-    result = []
-    
-    for set_id, card_set in FLASHCARDS_DB.items():
-        result.append({
-            "id": set_id,
-            "title": card_set["title"],
-            "source": card_set.get("source", ""),
-            "creation_date": card_set.get("creation_date", ""),
-            "count": len(card_set["flashcards"])
-        })
+    sets = db_session.query(FlashcardSet).all()
+    result = [{
+        "id": set.id,
+        "title": set.title,
+        "source": set.source,
+        "creation_date": set.creation_date.isoformat() if set.creation_date else None,
+        "count": len(set.flashcards)
+    } for set in sets]
     
     return jsonify(result), 200
 
 @app.route('/api/flashcards/<set_id>', methods=['GET'])
 def get_flashcard_set(set_id):
     """Récupérer un jeu spécifique de flashcards"""
-    if set_id not in FLASHCARDS_DB:
+    flashcard_set = db_session.query(FlashcardSet).get(set_id)
+    if not flashcard_set:
         return jsonify({"error": "Jeu de flashcards non trouvé"}), 404
     
-    return jsonify(FLASHCARDS_DB[set_id]), 200
+    return jsonify({
+        "id": flashcard_set.id,
+        "title": flashcard_set.title,
+        "source": flashcard_set.source,
+        "creation_date": flashcard_set.creation_date.isoformat() if flashcard_set.creation_date else None,
+        "flashcards": [{
+            "id": card.id,
+            "question": card.question,
+            "answer": card.answer,
+            "tags": card.tags,
+            "difficulty": card.difficulty,
+            "lastReviewed": card.last_reviewed.isoformat() if card.last_reviewed else None,
+            "nextReview": card.next_review.isoformat() if card.next_review else None,
+            "reviewCount": card.review_count
+        } for card in flashcard_set.flashcards]
+    }), 200
 
 @app.route('/api/flashcards/<set_id>', methods=['PUT'])
 def update_flashcard_set(set_id):
@@ -481,18 +518,20 @@ def update_flashcard(set_id, card_id):
 
 @app.route('/api/flashcards/<set_id>', methods=['DELETE'])
 def delete_flashcard_set(set_id):
-    """Supprimer un jeu spécifique de flashcards"""
-    if set_id not in FLASHCARDS_DB:
-        return jsonify({"error": "Jeu de flashcards non trouvé"}), 404
+    flashcard_set = db_session.query(FlashcardSet).get(set_id)
+    if not flashcard_set:
+        return jsonify({"error": "Flashcard set not found"}), 404
     
-    del FLASHCARDS_DB[set_id]
-    
-    # Save changes to file
-    save_flashcards_db(FLASHCARDS_DB)
+    try:
+        db_session.delete(flashcard_set)
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
     
     return jsonify({
         "success": True,
-        "message": "Jeu de flashcards supprimé avec succès"
+        "message": "Flashcard set deleted successfully"
     }), 200
 
 @app.route('/api/generate', methods=['POST'])
@@ -546,4 +585,5 @@ def generate_from_text():
     }), 200
 
 if __name__ == '__main__':
+    init_db()
     app.run(debug=True, host='0.0.0.0')
