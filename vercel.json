@@ -12,6 +12,10 @@
       "dest": "https://brainboost-j532.onrender.com/api/$1"
     },
     {
+      "src": "/study/[^/]+",
+      "dest": "frontend/study/[setId]/page"
+    },
+    {
       "src": "/(.*)",
       "dest": "frontend/$1"
     }

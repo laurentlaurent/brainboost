@@ -2,6 +2,10 @@
 
 BrainBoost is an interactive web application that uses AI to generate flashcards from various types of content. The application facilitates learning by automatically transforming PDF documents, images, or text into question-answer cards.
 
+BrainBoost was built in just 24 hours during a hackathon by:
+- [Laurent](https://github.com/laurentlaurent/)
+- [Pierre-Henri](https://github.com/phlearning)
+
 ## Features
 
 - **PDF Import**: Import PDFs
@@ -30,8 +34,8 @@ The project is divided into two main parts:
 
 ```bash
 # Copy environment files
-cp backend/.env.example backend/.env
-cp .env.example .env
+cp .env.backend.example .env.backend
+cp .env.frontend.example .env.frontend
 
 # Edit backend/.env to add your Gemini API key
 # GEMINI_API_KEY=your_key_here
@@ -119,7 +123,7 @@ npm run dev
 
 ## Environment Configuration
 
-### Backend (.env)
+### Backend (.env.backend)
 ```
 GEMINI_API_KEY=your_gemini_api_key
 FLASK_APP=app.py
@@ -129,7 +133,7 @@ PORT=5000
 HOST=0.0.0.0
 ```
 
-### Frontend (.env)
+### Frontend (.env.frontend)
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
@@ -154,8 +158,27 @@ make test-backend
 ## Deployment
 
 The project includes configuration files for deployment:
-- `vercel.json` for deploying the frontend to Vercel
+- `vercel.json` for deploying the frontend to Vercel and need to be changed accordingly to your own configuration
 - Docker configuration for containerized deployment
+
+## Screenshots
+
+<details>
+<summary>Click to view screenshots</summary>
+
+### Home Page - Upload and manage your flashcards
+![Home Page](screenshots/home.png)
+
+### Document Upload - Import PDFs and generate flashcards
+![Upload Page](screenshots/upload.png)
+
+### Study Mode - Review your flashcards
+![Study Mode](screenshots/study.png)
+
+### Quiz Mode - Test your knowledge
+![Quiz Mode](screenshots/quiz.png)
+
+</details>
 
 ## License
 
