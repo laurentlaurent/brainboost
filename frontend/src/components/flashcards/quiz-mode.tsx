@@ -44,6 +44,17 @@ const generateMultipleChoiceOptions = (correctAnswer: string, allFlashcards: Fla
   return options.sort(() => 0.5 - Math.random());
 };
 
+const getDifficultyLabel = (difficulty: number): string => {
+  const labels = {
+    1: "Very Easy",
+    2: "Easy",
+    3: "Medium", 
+    4: "Hard",
+    5: "Very Hard"
+  };
+  return labels[difficulty as keyof typeof labels] || "Unknown";
+};
+
 export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [quizMode, setQuizMode] = useState<'multiple-choice' | 'fill-in'>('multiple-choice');
@@ -224,11 +235,11 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
                 <Button
                   key={index}
                   variant={selectedAnswer === option ? "default" : "outline"}
-                  className="w-full justify-start text-left p-4 min-h-[50px] h-auto"
+                  className="w-full justify-start text-left p-4 min-h-[50px] h-auto overflow-hidden whitespace-normal"
                   onClick={() => setSelectedAnswer(option)}
                   disabled={showResult}
                 >
-                  {option}
+                  <span className="break-words">{option}</span>
                 </Button>
               ))}
             </div>
@@ -251,7 +262,7 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
                 {results[results.length - 1].correct ? "Correct!" : "Incorrect"}
               </AlertTitle>
               <AlertDescription>
-                The correct answer is: {currentCard.answer}
+                <p className="break-words">The correct answer is: {currentCard.answer}</p>
               </AlertDescription>
             </Alert>
           )}
@@ -275,7 +286,7 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
           )}
           
           <div className="text-sm text-muted-foreground text-center sm:text-right">
-            Difficulty: {currentCard.difficulty}/3
+            Difficulty: {getDifficultyLabel(currentCard.difficulty)}
           </div>
         </CardFooter>
       </Card>
