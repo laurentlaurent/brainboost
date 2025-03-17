@@ -79,24 +79,25 @@ export function FlashcardViewer({ flashcards, setId, onEditCard }: FlashcardView
 
   if (completed) {
     return (
-      <div className="flex flex-col gap-4 items-center justify-center p-6 border rounded-lg">
+      <div className="flex flex-col gap-4 items-center justify-center p-4 sm:p-6 border rounded-lg">
         <h3 className="text-xl font-semibold">Review Completed! 🎉</h3>
         <p className="text-muted-foreground text-center">
           You&apos;ve reviewed all {flashcards.length} flashcards in this set.
         </p>
-        <Button onClick={resetReview}>Start Over</Button>
+        <Button className="min-h-[44px]" onClick={resetReview}>Start Over</Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
         <p className="text-sm text-muted-foreground">
           Card {currentCardIndex + 1} of {flashcards.length}
         </p>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button
+            className="flex-1 sm:flex-none min-h-[44px]"
             variant="outline"
             size="sm"
             onClick={handlePrevious}
@@ -105,6 +106,7 @@ export function FlashcardViewer({ flashcards, setId, onEditCard }: FlashcardView
             Previous
           </Button>
           <Button
+            className="flex-1 sm:flex-none min-h-[44px]"
             variant="outline"
             size="sm"
             onClick={handleNext}
@@ -114,10 +116,10 @@ export function FlashcardViewer({ flashcards, setId, onEditCard }: FlashcardView
         </div>
       </div>
 
-      <Card className="h-64 flex flex-col">
-        <CardHeader className="pb-2">
-          <div className="flex justify-between">
-            <div className="flex gap-2">
+      <Card className="min-h-[240px] flex flex-col">
+        <CardHeader className="pb-2 px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               {(currentCard.tags || []).map((tag) => (
                 <span
                   key={tag}
@@ -132,8 +134,8 @@ export function FlashcardViewer({ flashcards, setId, onEditCard }: FlashcardView
             </span>
           </div>
         </CardHeader>
-        <CardContent className="flex-grow flex flex-col justify-center">
-          <h3 className="text-lg font-medium mb-3">{currentCard.question}</h3>
+        <CardContent className="flex-grow flex flex-col justify-center px-4 sm:px-6">
+          <h3 className="text-base sm:text-lg font-medium mb-3">{currentCard.question}</h3>
           
           {showAnswer ? (
             <>
@@ -144,8 +146,9 @@ export function FlashcardViewer({ flashcards, setId, onEditCard }: FlashcardView
             </>
           ) : null}
         </CardContent>
-        <CardFooter className="flex justify-between pt-2">
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 pt-2 px-4 sm:px-6">
           <Button 
+            className="flex-1 sm:flex-none min-h-[44px]"
             variant="ghost" 
             onClick={toggleAnswer}
           >
@@ -154,6 +157,7 @@ export function FlashcardViewer({ flashcards, setId, onEditCard }: FlashcardView
           
           {onEditCard && (
             <Button 
+              className="flex-1 sm:flex-none min-h-[44px]"
               variant="outline" 
               onClick={() => onEditCard(currentCard)}
             >

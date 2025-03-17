@@ -182,23 +182,23 @@ export default function LibraryPage() {
   // Library view
   if (currentView === 'library') {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="space-y-6">
+      <div className="container mx-auto py-4 sm:py-6 md:py-8 px-3 sm:px-4">
+        <div className="space-y-4 sm:space-y-6">
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold">My Flashcard Sets</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold">My Flashcard Sets</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Select a flashcard set to study or review
             </p>
           </div>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="px-4 sm:px-6">
               <CardTitle>My Flashcard Sets</CardTitle>
               <CardDescription>
                 Select a flashcard set to study or review
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               {isLoading ? (
                 <div className="flex justify-center py-8">
                   <p>Loading...</p>
@@ -211,30 +211,31 @@ export default function LibraryPage() {
                   </Button>
                 </div>
               ) : flashcardSets.length === 0 ? (
-                <div className="text-center py-8">
+                <div className="text-center py-6 sm:py-8">
                   <p className="text-muted-foreground">
                     No flashcard sets yet. Upload a document to get started.
                   </p>
-                  <Button className="mt-4" onClick={() => router.push('/upload')}>
+                  <Button className="mt-4 min-h-[44px]" onClick={() => router.push('/upload')}>
                     Upload Document
                   </Button>
                 </div>
               ) : (
-                <div className="grid gap-4">
+                <div className="grid gap-3 sm:gap-4">
                   {flashcardSets.map((set) => (
                     <Card key={set.id} className="cursor-pointer hover:bg-zinc-50" onClick={() => handleSelectSet(set.id)}>
-                      <CardContent className="p-4 flex justify-between items-center">
+                      <CardContent className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div>
-                          <h3 className="font-medium">{set.title}</h3>
+                          <h3 className="font-medium mb-1">{set.title}</h3>
                           <p className="text-sm text-muted-foreground">
                             {set.count} flashcards
                           </p>
                         </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
+                        <div className="flex gap-2 w-full sm:w-auto">
+                          <Button className="flex-1 sm:flex-none min-h-[44px]" variant="outline" size="sm">
                             Select
                           </Button>
                           <Button 
+                            className="flex-1 sm:flex-none min-h-[44px]"
                             variant="outline" 
                             size="sm"
                             onClick={(e) => handleDeleteSet(set.id, e)}
@@ -307,33 +308,26 @@ export default function LibraryPage() {
 
   // Study view (Review or Quiz)
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+    <div className="container mx-auto py-4 sm:py-6 md:py-8 px-3 sm:px-4">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="text-xl sm:text-2xl font-bold">{selectedSet.title}</h2>
+          <div className="flex flex-wrap gap-2">
             <Button 
-              variant="outline"
-              size="sm"
-              onClick={backToLibrary}
-            >
-              ← Back to Library
-            </Button>
-            <h2 className="text-2xl font-bold">{selectedSet.title}</h2>
-          </div>
-          <div className="flex gap-2">
-            <Button 
+              className="flex-1 sm:flex-none min-h-[44px]"
               variant={currentView === 'view' ? 'default' : 'outline'} 
               onClick={() => setCurrentView('view')}
             >
               Review Mode
             </Button>
             <Button 
+              className="flex-1 sm:flex-none min-h-[44px]"
               variant={currentView === 'quiz' ? 'default' : 'outline'}
               onClick={() => setCurrentView('quiz')}
             >
               Quiz Mode
             </Button>
-            <Button variant="outline" onClick={exportFlashcards}>
+            <Button className="flex-1 sm:flex-none min-h-[44px]" variant="outline" onClick={exportFlashcards}>
               Export
             </Button>
           </div>

@@ -139,9 +139,10 @@ export default function StudyPage() {
     linkElement.click();
   };
 
+  // Loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto py-4 sm:py-6 md:py-8 px-3 sm:px-4">
         <Card className="flex justify-center items-center h-40">
           <CardContent>
             <p>Loading flashcards...</p>
@@ -151,9 +152,10 @@ export default function StudyPage() {
     );
   }
 
+  // Error state
   if (error) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto py-4 sm:py-6 md:py-8 px-3 sm:px-4">
         <Card>
           <CardHeader>
             <h2 className="text-xl font-semibold text-red-600">Error</h2>
@@ -164,7 +166,7 @@ export default function StudyPage() {
               <p className="mt-4">Redirecting to library in a few seconds...</p>
             )}
             <Button 
-              className="mt-4" 
+              className="mt-4 min-h-[44px]" 
               onClick={() => router.push('/library')}
             >
               Return to Library
@@ -175,13 +177,14 @@ export default function StudyPage() {
     );
   }
 
+  // Set not found state
   if (!selectedSet) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto py-4 sm:py-6 md:py-8 px-3 sm:px-4">
         <div className="text-center">
           <p className="text-muted-foreground">Flashcard set not found</p>
           <Button 
-            className="mt-4" 
+            className="mt-4 min-h-[44px]" 
             onClick={() => router.push('/library')}
           >
             Return to Library
@@ -191,25 +194,32 @@ export default function StudyPage() {
     );
   }
 
+  // Main study view
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">{selectedSet.title}</h2>
-          <div className="flex gap-2">
+    <div className="container mx-auto py-4 sm:py-6 md:py-8 px-3 sm:px-4">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <h2 className="text-xl sm:text-2xl font-bold">{selectedSet.title}</h2>
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <Button 
+              className="flex-1 sm:flex-none min-h-[44px]"
               variant={currentView === 'view' ? 'default' : 'outline'} 
               onClick={() => setCurrentView('view')}
             >
               Review Mode
             </Button>
             <Button 
+              className="flex-1 sm:flex-none min-h-[44px]"
               variant={currentView === 'quiz' ? 'default' : 'outline'}
               onClick={() => setCurrentView('quiz')}
             >
               Quiz Mode
             </Button>
-            <Button variant="outline" onClick={exportFlashcards}>
+            <Button 
+              className="flex-1 sm:flex-none min-h-[44px]"
+              variant="outline" 
+              onClick={exportFlashcards}
+            >
               Export
             </Button>
           </div>

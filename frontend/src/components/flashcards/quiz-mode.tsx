@@ -138,32 +138,35 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border rounded-lg p-4 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="border rounded-lg p-3 sm:p-4 text-center">
                 <p className="text-sm text-muted-foreground">Accuracy</p>
-                <p className="text-2xl font-bold">{accuracy.toFixed(1)}%</p>
+                <p className="text-xl sm:text-2xl font-bold">{accuracy.toFixed(1)}%</p>
               </div>
-              <div className="border rounded-lg p-4 text-center">
+              <div className="border rounded-lg p-3 sm:p-4 text-center">
                 <p className="text-sm text-muted-foreground">Time</p>
-                <p className="text-2xl font-bold">{formatTime(totalTime)}</p>
+                <p className="text-xl sm:text-2xl font-bold">{formatTime(totalTime)}</p>
               </div>
             </div>
             
-            <div className="border rounded-lg p-4">
+            <div className="border rounded-lg p-3 sm:p-4">
               <p className="text-sm text-muted-foreground mb-2">Summary</p>
               <p className="font-medium">You got {correctAnswers} out of {results.length} questions correct.</p>
             </div>
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={() => {
-            setCurrentCardIndex(0);
-            setResults([]);
-            setTimer(0);
-            setCompleted(false);
-            setTimerActive(true);
-            setShowResult(false);
-          }} className="w-full">
+          <Button 
+            onClick={() => {
+              setCurrentCardIndex(0);
+              setResults([]);
+              setTimer(0);
+              setCompleted(false);
+              setTimerActive(true);
+              setShowResult(false);
+            }} 
+            className="w-full min-h-[44px]"
+          >
             Start Over
           </Button>
         </CardFooter>
@@ -181,23 +184,27 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Tabs value={quizMode} onValueChange={(value) => setQuizMode(value as 'multiple-choice' | 'fill-in')}>
-          <TabsList>
-            <TabsTrigger value="multiple-choice">Multiple Choice</TabsTrigger>
-            <TabsTrigger value="fill-in">Fill in the Blank</TabsTrigger>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <Tabs 
+          value={quizMode} 
+          onValueChange={(value) => setQuizMode(value as 'multiple-choice' | 'fill-in')}
+          className="w-full sm:w-auto"
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="multiple-choice" className="min-h-[44px]">Multiple Choice</TabsTrigger>
+            <TabsTrigger value="fill-in" className="min-h-[44px]">Fill in the Blank</TabsTrigger>
           </TabsList>
         </Tabs>
         
-        <div className="text-sm font-medium">
+        <div className="text-sm font-medium w-full sm:w-auto text-center sm:text-right">
           Time: {formatTime(timer)}
         </div>
       </div>
       
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Question {currentCardIndex + 1} of {flashcards.length}</CardTitle>
-          <div className="flex gap-1">
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg">Question {currentCardIndex + 1} of {flashcards.length}</CardTitle>
+          <div className="flex flex-wrap gap-1 mt-1">
             {(currentCard.tags || []).map((tag) => (
               <span
                 key={tag}
@@ -208,8 +215,8 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
             ))}
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-lg font-medium">{currentCard.question}</p>
+        <CardContent className="space-y-4 px-4 sm:px-6">
+          <p className="text-base sm:text-lg font-medium">{currentCard.question}</p>
           
           {quizMode === 'multiple-choice' ? (
             <div className="space-y-2">
@@ -217,7 +224,7 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
                 <Button
                   key={index}
                   variant={selectedAnswer === option ? "default" : "outline"}
-                  className="w-full justify-start text-left"
+                  className="w-full justify-start text-left p-4 min-h-[50px] h-auto"
                   onClick={() => setSelectedAnswer(option)}
                   disabled={showResult}
                 >
@@ -233,7 +240,7 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
                 disabled={showResult}
-                className="w-full p-2 border rounded-md"
+                className="w-full p-3 border rounded-md min-h-[50px]"
               />
             </div>
           )}
@@ -249,18 +256,25 @@ export function QuizMode({ flashcards, onComplete }: QuizModeProps) {
             </Alert>
           )}
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex flex-col sm:flex-row justify-between gap-3 px-4 sm:px-6">
           {!showResult ? (
-            <Button onClick={checkAnswer} disabled={quizMode === 'multiple-choice' ? !selectedAnswer : !userAnswer}>
+            <Button 
+              onClick={checkAnswer} 
+              disabled={quizMode === 'multiple-choice' ? !selectedAnswer : !userAnswer}
+              className="w-full sm:w-auto min-h-[44px]"
+            >
               Check Answer
             </Button>
           ) : (
-            <Button onClick={handleNext}>
+            <Button 
+              onClick={handleNext} 
+              className="w-full sm:w-auto min-h-[44px]"
+            >
               {currentCardIndex === flashcards.length - 1 ? "Finish Quiz" : "Next Question"}
             </Button>
           )}
           
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground text-center sm:text-right">
             Difficulty: {currentCard.difficulty}/3
           </div>
         </CardFooter>

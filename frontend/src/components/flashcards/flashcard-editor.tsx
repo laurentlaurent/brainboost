@@ -70,7 +70,7 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose} defaultOpen={false}>
-      <DialogContent className="z-50 sm:max-w-md data-[state=open]:bg-white">
+      <DialogContent className="z-50 sm:max-w-md data-[state=open]:bg-white max-h-[90vh] overflow-y-auto w-[calc(100%-2rem)]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Edit Flashcard</DialogTitle>
@@ -84,6 +84,7 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
               <Label htmlFor="question">Question</Label>
               <Input
                 id="question"
+                className="min-h-[44px]"
                 {...register("question", { required: "Question is required" })}
               />
               {errors.question && (
@@ -95,6 +96,7 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
               <Label htmlFor="answer">Answer</Label>
               <Input
                 id="answer"
+                className="min-h-[44px]"
                 {...register("answer", { required: "Answer is required" })}
               />
               {errors.answer && (
@@ -108,7 +110,7 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
                 defaultValue={card.difficulty.toString()}
                 onValueChange={(value) => setValue("difficulty", value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="min-h-[44px]">
                   <SelectValue placeholder="Select difficulty" />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-[60]">
@@ -129,8 +131,16 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleKeyDown}
+                  className="min-h-[44px]"
                 />
-                <Button type="button" variant="outline" onClick={addTag}>Add</Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={addTag}
+                  className="min-h-[44px]"
+                >
+                  Add
+                </Button>
               </div>
               
               {tags.length > 0 && (
@@ -138,13 +148,14 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
                   {tags.map((tag) => (
                     <div
                       key={tag}
-                      className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-1 text-xs"
+                      className="inline-flex items-center rounded-full bg-zinc-100 px-3 py-1.5 text-sm"
                     >
                       {tag}
                       <button
                         type="button"
                         onClick={() => removeTag(tag)}
-                        className="ml-1 text-zinc-500 hover:text-zinc-800"
+                        className="ml-2 text-zinc-500 hover:text-zinc-800 p-1"
+                        aria-label="Remove tag"
                       >
                         ×
                       </button>
@@ -157,11 +168,18 @@ export function FlashcardEditor({ card, isOpen, onClose, onSave }: FlashcardEdit
 
           <Separator />
 
-          <DialogFooter className="mt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <DialogFooter className="mt-4 flex flex-col-reverse sm:flex-row gap-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="min-h-[44px]"
+            >
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" className="min-h-[44px]">
+              Save Changes
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
